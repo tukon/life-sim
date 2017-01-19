@@ -1,2 +1,3 @@
 # life-sim
-CS 499 project
+
+Team 2’s project for CS 499: a life simulation program.

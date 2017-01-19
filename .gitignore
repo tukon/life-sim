@@ -1,0 +1,8 @@
+build/*
+*.swp
+nbproject/private/*
+/dist/
+*.sav
+
+# Don’t track Java crash logs:
+hs_err_pid*.log
