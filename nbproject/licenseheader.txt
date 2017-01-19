@@ -1,0 +1,4 @@
+/* 
+ * Project: Life Sim for CS 499
+ * Team 2: Adam, Alicia, Matt, Paul
+ */
