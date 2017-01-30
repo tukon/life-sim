@@ -6,3 +6,6 @@ nbproject/private/*
 
 # Don’t track Java crash logs:
 hs_err_pid*.log
+
+# Libreoffice lock files:
+.~lock.*#
