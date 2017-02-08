@@ -12,6 +12,8 @@
  *
  * REVISION HISTORY:
  * 01-26-17  MPK  New.
+ * 02-08-17  MPK  Implemented functionality to retrieve the world, herbivore,
+ *                predator, and plant life data (found in data parsers).
  *
  ******************************************************************************/
 package edu.cs499;
@@ -47,9 +49,42 @@ public class LifeSim_Interface {
     public static void main(String[] args)
     {
         // initialize variables needed for storing
-	int iVal = 0;
-        int iPlantCount = 0, iGrazerCount = 0, iPredatorCount = 0, iObstacleCount = 0;
-        double dVal = 0.0;
+        int iPlantCount    = 0, 
+            iGrazerCount   = 0, 
+            iPredatorCount = 0, 
+            iObstacleCount = 0;
+        
+        // World global info
+        double w_grid_width  = 0.0;
+        double w_grid_height = 0.0;
+        
+        // Rock global info
+        // None.
+        
+        // Plant Life global info
+        double pl_growth_rate            = 0.0;
+        double pl_seed_viability         = 0.0;
+        int    pl_max_size               = 0;
+        int    pl_max_seed_cast_distance = 0;
+        int    pl_max_seed_number        = 0;
+        
+        // Herbivore global info
+        double h_maintain_speed_time     = 0.0;
+        double h_max_speed               = 0.0;
+        int    h_energy_input_rate       = 0;
+        int    h_energy_output_rate      = 0;
+        int    h_energy_to_reproduce     = 0;
+        
+        // Predator global info
+        double p_max_speed_hod          = 0.0;
+        double p_max_speed_hed          = 0.0;
+        double p_max_speed_hor          = 0.0;
+        double p_maintain_speed_time    = 0.0;
+        double p_gestation_period       = 0.0;
+        int    p_energy_output_rate     = 0;
+        int    p_energy_to_reproduce    = 0;
+        int    p_max_offspring          = 0;
+        int    p_offspring_energy_level = 0;
                 
         // Create lists to store actors
         List<Rock>      rock_list       = new ArrayList<>();
@@ -72,25 +107,19 @@ public class LifeSim_Interface {
         //LifeSimDataParserMain lfdp = new LifeSimDataParserMain();
         
         /****************************************************************
+         * Retrieve World Data
+         ***************************************************************/ 
+        
+        // World info functions
+        w_grid_width  = lsdp.getWorldWidth();
+        w_grid_height = lsdp.getWorldHeight();
+        
+        /****************************************************************
          * Retrieve Rocks
          ***************************************************************/ 
-        iVal = lsdp.getObstacleCount(); // Number of obstacles
         
-        // error checking
-        System.out.println("Obstacle count = " + iVal);
-        if(iVal == 15)
-                System.out.println("\t Correct.\n");
-        else
-                System.out.println("\t Incorrect.\n");
-        iObstacleCount = iVal;
-
-        // Global variables for value return*
-        /*
-        public int ObstacleX;
-        public int ObstacleY;
-        public int ObstacleDiameter;
-        public int ObstacleHeight;
-        */
+        // Rock info functions
+        iObstacleCount = lsdp.getObstacleCount(); // Number of obstacles
         
         // loop through each obstacle (based on count retrived from data)
         for(int i=0; i< iObstacleCount; i++)
@@ -98,35 +127,85 @@ public class LifeSim_Interface {
             // if there is still data to be processed, get it
             if(lsdp.getObstacleData())
             {
-                // print out info for current obstacle
-                System.out.println("Obstacle " + i + " (" + lsdp.ObstacleX + ", " + lsdp.ObstacleY + ") diameter = " + 
-                                    lsdp.ObstacleDiameter + ", height = " + lsdp.ObstacleHeight);
-                
                 // create a new rock object with the current statistics
                 Rock rock = new Rock(lsdp.ObstacleX, lsdp.ObstacleY, lsdp.ObstacleDiameter, lsdp.ObstacleHeight);
                 // add it to the list of rocks.
                 rock_list.add(rock);
-            }
-            else
-            {
-                    System.out.println("Failed to read data for obstacle " + i);
             }
         }
         
         /****************************************************************
          * Retrieve Plant Life
          ***************************************************************/ 
-        // TODO
                 
+        // Plant info functions
+        iPlantCount               = lsdp.getInitialPlantCount();   // Inital plant count
+        pl_growth_rate            = lsdp.getPlantGrowthRate();     // Plant growth rate
+        pl_max_size               = lsdp.getMaxPlantSize();        // Max plant size
+        pl_max_seed_cast_distance = lsdp.getMaxSeedCastDistance(); // Max seed casting distance
+        pl_max_seed_number        = lsdp.getMaxSeedNumber();       // max seeds cast
+        pl_seed_viability         = lsdp.getSeedViability();       // seed viability ratio
+
+        for(int i=0; i< iPlantCount; i++)
+        {
+            if(lsdp.getPlantData())
+            {
+                // create a new plant_life object with the current statistics
+                PlantLife plant_life = new PlantLife(lsdp.PlantX, lsdp.PlantY, lsdp.PlantDiameter);
+                // add it to the list of plant life.
+                plant_life_list.add(plant_life);
+            }
+        }
+
         /****************************************************************
          * Retrieve Herbivores
          ***************************************************************/ 
-        // TODO
+
+        // Grazer info functions
+        iGrazerCount          = lsdp.getInitialGrazerCount();      // Inital Grazer count
+        h_energy_input_rate   = lsdp.getGrazerEnergyInputRate();   // Energy input per minute when grazing
+        h_energy_output_rate  = lsdp.getGrazerEnergyOutputRate();  // Energy output when moving each 5 DU
+        h_energy_to_reproduce = lsdp.getGrazerEnergyToReproduce(); // Energy level needed to reproduce
+        h_maintain_speed_time = lsdp.getGrazerMaintainSpeedTime(); // Minutes of simulation to maintain max speed
+        h_max_speed           = lsdp.getGrazerMaxSpeed();	   // Max speed in DU per minute
+
+        for(int i=0; i< iGrazerCount; i++)
+        {
+            if(lsdp.getGrazerData())
+            {
+                // create a new herbivore object with the current statistics
+                Herbivore herbivore = new Herbivore(lsdp.GrazerX, lsdp.GrazerY, lsdp.GrazerEnergy);
+                // add it to the list of herbivores.
+                herbivore_list.add(herbivore);
+            }
+        }
                         
         /****************************************************************
          * Retrieve Predators
          ***************************************************************/ 
-        // TODO
+        
+        // Predator info functions
+        iPredatorCount           = lsdp.getInitialPredatorCount();         // Inital Predator Count
+        p_max_speed_hod          = lsdp.getPredatorMaxSpeedHOD();	   // Get max speed for Homozygous Dominant FF
+        p_max_speed_hed          = lsdp.getPredatorMaxSpeedHED();	   // Get max speed for Heterozygous Dominant Ff
+        p_max_speed_hor          = lsdp.getPredatorMaxSpeedHOR();	   // Get max speed for Homozygous Recessive ff
+        p_energy_output_rate     = lsdp.getPredatorEnergyOutputRate();	   // Energy output when moving each 5 DU
+        p_energy_to_reproduce    = lsdp.getPredatorEnergyToReproduce();	   // Energy level needed to reproduce
+        p_maintain_speed_time    = lsdp.getPredatorMaintainSpeedTime();	   // Minutes of simulation to maintain max speed
+        p_max_offspring          = lsdp.getPredatorMaxOffspring();         // Maximum number of offspring when reproducing
+        p_gestation_period       = lsdp.getPredatorGestationPeriod();	   // Gestation period in simulation days 
+        p_offspring_energy_level = lsdp.getPredatorOffspringEnergyLevel(); // Energy level of offspring at birth
+
+        for(int i=0; i< iPredatorCount; i++)
+        {
+            if(lsdp.getPredatorData())
+            {
+                // create a new predator object with the current statistics
+                Predator predator = new Predator(lsdp.PredatorX, lsdp.PredatorY, lsdp.PredatorEnergy, lsdp.PredatorGenotype);
+                // add it to the list of predators.
+                predator_list.add(predator);
+            }
+        }
         
     } // end main()
 
