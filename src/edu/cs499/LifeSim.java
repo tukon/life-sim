@@ -14,18 +14,16 @@
  *                the LifeSim_Interface class.
  *                Also added a LifeSim_Create function to call so that it is
  *                clear that the GUI is being created elsewhere.
+ * 02-27-17  MPK  Added the FXML based GUI, so the code was changed to start it.
  *
  ******************************************************************************/
 package edu.cs499;
 
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-
 /**
  * The main application class.
  * @author adam
@@ -51,30 +49,22 @@ public class LifeSim extends Application {
         *
         * DESCRIPTION: overrides starting function for the JavaFX GUI class.
         * 
-        * @param primaryStage
+        * @param stage
+        * @throws java.lang.Exception
         * 
         *********************************************************************/
 	@Override
-	public void start(Stage primaryStage) {
-		Button btn = new Button();
-		btn.setText("Say 'Hello World'");
-		btn.setOnAction(new EventHandler<ActionEvent>() {
-			
-			@Override
-			public void handle(ActionEvent event) {
-				System.out.println("Hello World!");
-			}
-		});
-		
-		StackPane root = new StackPane();
-		root.getChildren().add(btn);
-		
-		Scene scene = new Scene(root, 300, 250);
-		
-		primaryStage.setTitle("Hello World!");
-		primaryStage.setScene(scene);
-		primaryStage.show();
-                
+	public void start(Stage stage) throws Exception {
+            
+            // retrieve the JavaFX GUI from the FXML file
+            Parent root = FXMLLoader.load(getClass().getResource("GUI_FXML.fxml"));
+        
+            Scene scene = new Scene(root);
+        
+            stage.setTitle( "Life Simulation" );
+            stage.setScene(scene);
+            stage.show();
+            
 	} // End start()
 
        /**********************************************************************

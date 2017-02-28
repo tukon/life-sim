@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.canvas.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="790.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.cs499.GUI_FXMLController">
+   <children>
+      <Button fx:id="StartButton" layoutX="1113.0" layoutY="72.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="57.0" text="Start" />
+      <Button fx:id="PauseButton" layoutX="1113.0" layoutY="104.0" mnemonicParsing="false" text="Pause" />
+      <Button fx:id="EndButton" layoutX="1112.0" layoutY="137.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="57.0" text="End" />
+      <Button layoutX="1041.0" layoutY="751.0" mnemonicParsing="false" text="Generate Report" />
+      <Button fx:id="SpeedComboBox_50" layoutX="1112.0" layoutY="272.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="57.0" text="50x" />
+      <Button fx:id="SpeedComboBox_10" layoutX="1112.0" layoutY="240.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="57.0" text="10x" />
+      <Button fx:id="SpeedComboBox_1" layoutX="1112.0" layoutY="208.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="57.0" text="1x" />
+      <Button fx:id="SpeedComboBox_100" layoutX="1112.0" layoutY="303.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="57.0" text="100x" />
+      <Label layoutX="1113.0" layoutY="47.0" text="Controls" />
+      <Label layoutX="1121.0" layoutY="185.0" text="Speed" />
+      <TextField layoutX="1039.0" layoutY="716.0" prefHeight="25.0" prefWidth="127.0" text="Filename" />
+      <Canvas fx:id="canvas" height="750.0" layoutX="20.0" layoutY="20.0" width="1000.0">
+         <effect>
+            <Shadow color="#75eb96" />
+         </effect></Canvas>
+   </children>
+</AnchorPane>

@@ -11,6 +11,7 @@
  *
  * REVISION HISTORY:
  * 01-26-17  MPK  New.
+ * 02-27-16  MPK  Fixed typo where get_y_pos() was returning the x position.
  *
  ******************************************************************************/
 package edu.cs499;
@@ -63,7 +64,7 @@ public class Actor {
      *********************************************************************/
     public int get_y_pos()
     {
-        return this.x_pos;
+        return this.y_pos;
         
     } // End get_y_pos()
     

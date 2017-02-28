@@ -6,14 +6,15 @@
  * OBJECT: LifeSim_Interface
  *
  * DESCRIPTION:
- *      This object provides the interface for initializing all modules. It 
- *      starts the GUI in a separate thread so the interface can run 
- *      concurrently.
+ *      This object provides the interface for initializing all modules.
  *
  * REVISION HISTORY:
  * 01-26-17  MPK  New.
  * 02-08-17  MPK  Implemented functionality to retrieve the world, herbivore,
  *                predator, and plant life data (found in data parsers).
+ * 02-27-17  MPK Changed the implementation so that the GUI controller now
+ *           creates an instance of this class, to instantiate and control
+ *           the evolution of the actors.
  *
  ******************************************************************************/
 package edu.cs499;
@@ -23,6 +24,13 @@ import java.util.List;
 
 public class LifeSim_Interface {
     public static String DATAFILE = new String(System.getProperty("user.dir") + "/LifeSimulation01.xml");
+    
+                    
+    // Create lists to store actors
+    private List<Rock>      rock_list       = new ArrayList<>();
+    private List<PlantLife> plant_life_list = new ArrayList<>();
+    private List<Herbivore> herbivore_list  = new ArrayList<>();
+    private List<Predator>  predator_list   = new ArrayList<>();
 
     /**********************************************************************
      *
@@ -34,6 +42,7 @@ public class LifeSim_Interface {
     public LifeSim_Interface()
     {
         // constructor 
+        LifeSim_Interface_create();
         
     } // End LifeSim_Interface()
     
@@ -48,7 +57,19 @@ public class LifeSim_Interface {
      *********************************************************************/
     public static void main(String[] args)
     {
-        // initialize variables needed for storing
+        
+    } // end main()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: LifeSim_Interface_create()
+     *
+     * DESCRIPTION: initializes the data
+     * 
+     *********************************************************************/
+    private void LifeSim_Interface_create()
+    {
+                // initialize variables needed for storing
         int iPlantCount    = 0, 
             iGrazerCount   = 0, 
             iPredatorCount = 0, 
@@ -85,12 +106,6 @@ public class LifeSim_Interface {
         int    p_energy_to_reproduce    = 0;
         int    p_max_offspring          = 0;
         int    p_offspring_energy_level = 0;
-                
-        // Create lists to store actors
-        List<Rock>      rock_list       = new ArrayList<>();
-        List<PlantLife> plant_life_list = new ArrayList<>();
-        List<Herbivore> herbivore_list  = new ArrayList<>();
-        List<Predator>  predator_list   = new ArrayList<>();
         
         // get the singleton and initalize the data parser
         LifeSimDataParser lsdp = LifeSimDataParser.getInstance();
@@ -98,9 +113,12 @@ public class LifeSim_Interface {
         
         /****************************************************************
          * start the GUI Thread
+         * 
+         * NOT INITALIZED THIS WAY ANYMORE
+         * 
          ***************************************************************/ 
-        Start_GUI LifeSim_GUI = new Start_GUI("GUI_Thread");
-        LifeSim_GUI.start();
+        //Start_GUI LifeSim_GUI = new Start_GUI("GUI_Thread");
+        //LifeSim_GUI.start();
       
         // THIS WORKS, leaving here for reference.
         // run the data parser
@@ -206,8 +224,83 @@ public class LifeSim_Interface {
                 predator_list.add(predator);
             }
         }
-        
-    } // end main()
+    } // End LifeSim_Interface_create()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: get_rock_list()
+     *
+     * DESCRIPTION: get the current list of rocks
+     *
+     * @return
+     * 
+     *********************************************************************/
+    public List<Rock> get_rock_list() 
+    {
+        return rock_list;
+
+    } // End get_rock_list
+    
+    /**********************************************************************
+     *
+     * FUNCTION: get_plant_life_list()
+     *
+     * DESCRIPTION: get the current list of plant life
+     *
+     * @return
+     * 
+     *********************************************************************/
+    public List<PlantLife> get_plant_life_list() 
+    {
+        return plant_life_list;
+
+    } // End get_plant_life_list()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: get_herbivore_list()
+     *
+     * DESCRIPTION: get the current list of herbivore
+     *
+     * @return
+     * 
+     *********************************************************************/
+    public List<Herbivore> get_herbivore_list() 
+    {
+        return herbivore_list;
+
+    } // End get_herbivore_list
+    
+    /**********************************************************************
+     *
+     * FUNCTION: get_predator_list()
+     *
+     * DESCRIPTION: get the current list of predators
+     *
+     * @return
+     * 
+     *********************************************************************/
+    public List<Predator> get_predator_list() 
+    {
+        return predator_list;
+
+    } // End get_predator_list
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /*
+     BELOW THIS POINT IS OLD CODE AND IS NOT USED. 
+     
+     only leaving the code here because it is a useful example of how to start
+     a thread in case we need it.
+    
+    */
 
     /**********************************************************************
      *
