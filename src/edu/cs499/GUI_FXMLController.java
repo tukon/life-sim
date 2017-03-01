@@ -10,6 +10,9 @@
  *
  * REVISION HISTORY:
  * 02-27-17  MPK  New.
+ * 02-28-17  MPK  Added events for the buttons.
+ *                Added functionality to control the update process of the
+ *                canvas object.
  *
  ******************************************************************************/
 package edu.cs499;
@@ -20,11 +23,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.animation.AnimationTimer;
+import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 
 public class GUI_FXMLController implements Initializable {
@@ -38,15 +43,24 @@ public class GUI_FXMLController implements Initializable {
     @FXML
     private Button EndButton;
     @FXML
-    private Button SpeedComboBox_1;
+    private Button SpeedButton_1;
     @FXML
-    private Button SpeedComboBox_10;
+    private Button SpeedButton_10;
     @FXML
-    private Button SpeedComboBox_50;
+    private Button SpeedButton_50;
     @FXML
-    private Button SpeedComboBox_100;
+    private Button SpeedButton_100;
+    @FXML
+    private Button GenReportButton;
+    @FXML
+    private TextField FilenameInput;
+    @FXML
+    private TextField TimeTextField;
     @FXML
     private Canvas canvas;
+    
+    // Interface
+    LifeSim_Interface sim_interface;
    
     // Create lists to store actors
     private List<Rock>      rock_list       = new ArrayList<>();
@@ -54,19 +68,39 @@ public class GUI_FXMLController implements Initializable {
     private List<Herbivore> herbivore_list  = new ArrayList<>();
     private List<Predator>  predator_list   = new ArrayList<>();
     
+    private boolean retrieve_actor_states;
+    
     /**********************************************************************
      *
      * FUNCTION: initialize()
      *
      * DESCRIPTION: Initializes the controller class
      * 
+     * @param url
+     * @param rb
+     * 
      *********************************************************************/
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         assert canvas != null;
+        
+        // initalize the buttons
+        PauseButton.setDisable(true);
+        EndButton.setDisable(true);
+        SpeedButton_1.setDisable(true);
+        TimeTextField.setText("0");
+        
+        retrieve_actor_states = false;
 
+        // Initialize the interface
+        sim_interface = new LifeSim_Interface();
+
+        // Initialize the canvas
         GraphicsContext gc = canvas.getGraphicsContext2D();
+
+        // Start Server
         start_server( gc );
+
     }
     
     /**********************************************************************
@@ -77,15 +111,7 @@ public class GUI_FXMLController implements Initializable {
      * 
      *********************************************************************/
     private void start_server(GraphicsContext gc)
-    {
-        
-        // retrieve all of the inital actors.
-        LifeSim_Interface sim_interface = new LifeSim_Interface();
-        rock_list       = sim_interface.get_rock_list();
-        plant_life_list = sim_interface.get_plant_life_list();
-        herbivore_list  = sim_interface.get_herbivore_list();
-        predator_list   = sim_interface.get_predator_list();
-        
+    {        
         final long startNanoTime = System.nanoTime();
         final int animal_height = 10;
         final int animal_width = 10;
@@ -108,56 +134,218 @@ public class GUI_FXMLController implements Initializable {
                 // simulation if Pause has been pressed. Any other respones
                 // would be here as well. 
                 // Use a switch statement to check for boolean values being set?
-
-                // clear the previous canvas state
-                gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-                
-                //set the rocks
-                gc.setFill(Color.RED);
-                Iterator<Rock> rock_list_iterator = rock_list.iterator();
-		while (rock_list_iterator.hasNext()) 
+                        
+                // if the pause or end button is engaged, there is no reason
+                // to waste computation time on refreshing the canvas since
+                // nothing will be changing.
+                if (retrieve_actor_states == true)
                 {
-                    Rock rock = rock_list_iterator.next();
-                    gc.fillOval(rock.get_x_pos(), rock.get_y_pos(), rock.get_diameter(), rock.get_diameter()); 
-                    System.out.println("Rock: x" + rock.get_x_pos() + " y" + rock.get_y_pos() + " w" + rock.get_diameter() + " w" + rock.get_diameter());
-		}
-                
-                // set the plant life
-                gc.setFill(Color.GREEN);
-                Iterator<PlantLife> plant_life_list_iterator = plant_life_list.iterator();
-		while (plant_life_list_iterator.hasNext()) 
-                {
-                    PlantLife plant_life = plant_life_list_iterator.next();
-                    gc.fillOval(plant_life.get_x_pos(), plant_life.get_y_pos(), plant_life.get_diameter(), plant_life.get_diameter()); 
-                    System.out.println("Plant: x" + plant_life.get_x_pos() + " y" + plant_life.get_y_pos() + " w" + plant_life.get_diameter() + " w" + plant_life.get_diameter());
-		}
-                
-                // set the herbivores
-                gc.setFill(Color.BLUE);
-                Iterator<Herbivore> herbivore_list_iterator = herbivore_list.iterator();
-		while (herbivore_list_iterator.hasNext()) {
-                    Herbivore herbivore = herbivore_list_iterator.next();
-                    gc.fillRect(herbivore.get_x_pos(), herbivore.get_y_pos(), animal_width, animal_height); 
-                    System.out.println("herbivore: x" + herbivore.get_x_pos() + " y" + herbivore.get_y_pos() + " w" + animal_width + " w" + animal_width);
-		}
-                
-                // set the predators
-                gc.setFill(Color.RED);
-                Iterator<Predator> predator_list_iterator = predator_list.iterator();
-		while (predator_list_iterator.hasNext()) {
-                    Predator predator = predator_list_iterator.next();
-                    gc.fillRect(predator.get_x_pos(), predator.get_y_pos(), animal_width+5, animal_height+5); 
-                    System.out.println("predator: x" + predator.get_x_pos() + " y" + predator.get_y_pos() + " w" + animal_width + " w" + animal_width);
-		}
-                
-                // sample object being moved around the canvas area.
-                gc.fillRect(x, y, x, y);
+                    
+                    TimeTextField.setText(Integer.toString(sim_interface.get_sim_time()));
+                            
+                    // retrieve all of the current actors.
+                    rock_list       = sim_interface.get_rock_list();
+                    plant_life_list = sim_interface.get_plant_life_list();
+                    herbivore_list  = sim_interface.get_herbivore_list();
+                    predator_list   = sim_interface.get_predator_list();
 
-                // test printout
-                System.out.println("looping");
+                    // clear the previous canvas state
+                    gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+
+                    //set the rocks
+                    gc.setFill(Color.RED);
+                    Iterator<Rock> rock_list_iterator = rock_list.iterator();
+                    while (rock_list_iterator.hasNext()) 
+                    {
+                        Rock rock = rock_list_iterator.next();
+                        gc.fillOval(rock.get_x_pos(), rock.get_y_pos(), rock.get_diameter(), rock.get_diameter()); 
+                        //System.out.println("Rock: x" + rock.get_x_pos() + " y" + rock.get_y_pos() + " w" + rock.get_diameter() + " w" + rock.get_diameter());
+                    }
+
+                    // set the plant life
+                    gc.setFill(Color.GREEN);
+                    Iterator<PlantLife> plant_life_list_iterator = plant_life_list.iterator();
+                    while (plant_life_list_iterator.hasNext()) 
+                    {
+                        PlantLife plant_life = plant_life_list_iterator.next();
+                        gc.fillOval(plant_life.get_x_pos(), plant_life.get_y_pos(), plant_life.get_diameter(), plant_life.get_diameter()); 
+                        //System.out.println("Plant: x" + plant_life.get_x_pos() + " y" + plant_life.get_y_pos() + " w" + plant_life.get_diameter() + " w" + plant_life.get_diameter());
+                    }
+
+                    // set the herbivores
+                    gc.setFill(Color.BLUE);
+                    Iterator<Herbivore> herbivore_list_iterator = herbivore_list.iterator();
+                    while (herbivore_list_iterator.hasNext()) {
+                        Herbivore herbivore = herbivore_list_iterator.next();
+                        gc.fillRect(herbivore.get_x_pos(), herbivore.get_y_pos(), animal_width, animal_height); 
+                        //System.out.println("herbivore: x" + herbivore.get_x_pos() + " y" + herbivore.get_y_pos() + " w" + animal_width + " w" + animal_width);
+                    }
+
+                    // set the predators
+                    gc.setFill(Color.RED);
+                    Iterator<Predator> predator_list_iterator = predator_list.iterator();
+                    while (predator_list_iterator.hasNext()) {
+                        Predator predator = predator_list_iterator.next();
+                        gc.fillRect(predator.get_x_pos(), predator.get_y_pos(), animal_width+5, animal_height+5); 
+                        //System.out.println("predator: x" + predator.get_x_pos() + " y" + predator.get_y_pos() + " w" + animal_width + " w" + animal_width);
+                    }
+
+                    // sample object being moved around the canvas area.
+                    // THIS DOES NOT FOLLOW THE SAME RULES AS THE TIMER
+                    // (it will continue to "move" in the background,
+                    //  regardless of the paused or ended state.)
+                    gc.fillRect(x, y, x, y);
+
+                    // test printout
+                    //System.out.println("looping");
+                }
 
             }
         }.start();
     }    
+    
+    /**********************************************************************
+     *
+     * FUNCTION: start_button_event()
+     *
+     * DESCRIPTION: starts the simulation by responding to the button event
+     * 
+     *********************************************************************/
+    @FXML
+    private void start_button_event(ActionEvent event) 
+    {
+        sim_interface.start_sim();
+        StartButton.setDisable(true);
+        PauseButton.setDisable(false);
+        EndButton.setDisable(false);
+        retrieve_actor_states = true;
+        
+    } // End start_button_event()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: pause_button_event()
+     *
+     * DESCRIPTION: pauses the simulation by responding to the button event
+     * 
+     *********************************************************************/
+    @FXML
+    private void pause_button_event(ActionEvent event) 
+    {
+        sim_interface.pause_sim();
+        StartButton.setDisable(false);
+        PauseButton.setDisable(true);
+        EndButton.setDisable(false);
+        retrieve_actor_states = false;
+        
+    } // End pause_button_event()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: end_button_event()
+     *
+     * DESCRIPTION: ends the simulation by responding to the button event
+     * 
+     *********************************************************************/
+    @FXML
+    private void end_button_event(ActionEvent event) 
+    {
+        sim_interface.start_sim();
+        StartButton.setDisable(false);
+        PauseButton.setDisable(true);
+        EndButton.setDisable(true);
+        retrieve_actor_states = false;
+        
+    } // End end_button_event()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: speed_1x_button_event()
+     *
+     * DESCRIPTION: changes the speed of the simulation by responding to 
+     *              the button event
+     * 
+     *********************************************************************/
+    @FXML
+    private void speed_1x_button_event(ActionEvent event) 
+    {
+        sim_interface.change_sim_speed(Timer.TimerSpeed.X1);
+        SpeedButton_1.setDisable(true);
+        SpeedButton_10.setDisable(false);
+        SpeedButton_50.setDisable(false);
+        SpeedButton_100.setDisable(false);
+
+    } // End speed_1x_button_event()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: speed_10x_button_event()
+     *
+     * DESCRIPTION: changes the speed of the simulation by responding to 
+     *              the button event
+     * 
+     *********************************************************************/
+    @FXML
+    private void speed_10x_button_event(ActionEvent event) 
+    {
+        sim_interface.change_sim_speed(Timer.TimerSpeed.X10);
+        SpeedButton_1.setDisable(false);
+        SpeedButton_10.setDisable(true);
+        SpeedButton_50.setDisable(false);
+        SpeedButton_100.setDisable(false);
+
+    } // End speed_10x_button_event()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: speed_50x_button_event()
+     *
+     * DESCRIPTION: changes the speed of the simulation by responding to 
+     *              the button event
+     * 
+     *********************************************************************/
+    @FXML
+    private void speed_50x_button_event(ActionEvent event) 
+    {
+        sim_interface.change_sim_speed(Timer.TimerSpeed.X50);
+        SpeedButton_1.setDisable(false);
+        SpeedButton_10.setDisable(false);
+        SpeedButton_50.setDisable(true);
+        SpeedButton_100.setDisable(false);
+
+    } // End speed_50x_button_event()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: speed_100x_button_event()
+     *
+     * DESCRIPTION: changes the speed of the simulation by responding to 
+     *              the button event
+     * 
+     *********************************************************************/
+    @FXML
+    private void speed_100x_button_event(ActionEvent event) 
+    {
+        sim_interface.change_sim_speed(Timer.TimerSpeed.X100);
+        SpeedButton_1.setDisable(false);
+        SpeedButton_10.setDisable(false);
+        SpeedButton_50.setDisable(false);
+        SpeedButton_100.setDisable(true);
+
+    } // End speed_100x_button_event()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: gen_report_button_event()
+     *
+     * DESCRIPTION: sends the event to print out a report
+     * 
+     *********************************************************************/
+    @FXML
+    private void gen_report_button_event(ActionEvent event) 
+    {
+        sim_interface.output_sim_statistics(FilenameInput.getText());
+
+    } // End gen_report_button_event()
     
 }

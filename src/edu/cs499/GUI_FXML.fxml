@@ -10,20 +10,21 @@
 
 <AnchorPane id="AnchorPane" prefHeight="790.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.cs499.GUI_FXMLController">
    <children>
-      <Button fx:id="StartButton" layoutX="1113.0" layoutY="72.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="57.0" text="Start" />
-      <Button fx:id="PauseButton" layoutX="1113.0" layoutY="104.0" mnemonicParsing="false" text="Pause" />
-      <Button fx:id="EndButton" layoutX="1112.0" layoutY="137.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="57.0" text="End" />
-      <Button layoutX="1041.0" layoutY="751.0" mnemonicParsing="false" text="Generate Report" />
-      <Button fx:id="SpeedComboBox_50" layoutX="1112.0" layoutY="272.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="57.0" text="50x" />
-      <Button fx:id="SpeedComboBox_10" layoutX="1112.0" layoutY="240.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="57.0" text="10x" />
-      <Button fx:id="SpeedComboBox_1" layoutX="1112.0" layoutY="208.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="57.0" text="1x" />
-      <Button fx:id="SpeedComboBox_100" layoutX="1112.0" layoutY="303.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="57.0" text="100x" />
+      <Button fx:id="StartButton" layoutX="1113.0" layoutY="72.0" mnemonicParsing="false" onAction="#start_button_event" prefHeight="25.0" prefWidth="57.0" text="Start" />
+      <Button fx:id="PauseButton" layoutX="1113.0" layoutY="104.0" mnemonicParsing="false" onAction="#pause_button_event" text="Pause" />
+      <Button fx:id="EndButton" layoutX="1112.0" layoutY="137.0" mnemonicParsing="false" onAction="#end_button_event" prefHeight="25.0" prefWidth="57.0" text="End" />
+      <Button fx:id="GenReportButton" layoutX="1041.0" layoutY="751.0" mnemonicParsing="false" onAction="#gen_report_button_event" text="Generate Report" />
+      <Button fx:id="SpeedButton_50" layoutX="1112.0" layoutY="272.0" mnemonicParsing="false" onAction="#speed_50x_button_event" prefHeight="25.0" prefWidth="57.0" text="50x" />
+      <Button fx:id="SpeedButton_10" layoutX="1112.0" layoutY="240.0" mnemonicParsing="false" onAction="#speed_10x_button_event" prefHeight="25.0" prefWidth="57.0" text="10x" />
+      <Button fx:id="SpeedButton_1" layoutX="1112.0" layoutY="208.0" mnemonicParsing="false" onAction="#speed_1x_button_event" prefHeight="25.0" prefWidth="57.0" text="1x" />
+      <Button fx:id="SpeedButton_100" layoutX="1112.0" layoutY="303.0" mnemonicParsing="false" onAction="#speed_100x_button_event" prefHeight="25.0" prefWidth="57.0" text="100x" />
       <Label layoutX="1113.0" layoutY="47.0" text="Controls" />
       <Label layoutX="1121.0" layoutY="185.0" text="Speed" />
-      <TextField layoutX="1039.0" layoutY="716.0" prefHeight="25.0" prefWidth="127.0" text="Filename" />
+      <TextField fx:id="FilenameInput" layoutX="1039.0" layoutY="716.0" prefHeight="25.0" prefWidth="127.0" text="Filename" />
       <Canvas fx:id="canvas" height="750.0" layoutX="20.0" layoutY="20.0" width="1000.0">
          <effect>
             <Shadow color="#75eb96" />
          </effect></Canvas>
+      <TextField fx:id="TimeTextField" editable="false" layoutX="1113.0" layoutY="8.0" prefHeight="25.0" prefWidth="55.0" />
    </children>
 </AnchorPane>
