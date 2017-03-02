@@ -250,8 +250,8 @@ public class GUI_FXMLController implements Initializable {
     @FXML
     private void end_button_event(ActionEvent event) 
     {
-        sim_interface.start_sim();
-        StartButton.setDisable(false);
+        sim_interface.end_sim();
+        StartButton.setDisable(true);
         PauseButton.setDisable(true);
         EndButton.setDisable(true);
         retrieve_actor_states = false;

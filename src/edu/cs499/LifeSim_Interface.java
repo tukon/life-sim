@@ -70,7 +70,6 @@ public class LifeSim_Interface {
     private void LifeSim_Interface_create()
     {
         sim_actor_state = new ActorState();
-        sim_timer       = new Timer(time_task);
         sim_state       = Sim_State.OFF;
         sim_clock       = 0;
         
@@ -89,8 +88,8 @@ public class LifeSim_Interface {
     {
 
         // Start the Simulation Thread
-        Start_Simulation LifeSim_Simulation = new Start_Simulation("Sim_Thread");
-        LifeSim_Simulation.start();
+        time_task = new Start_Simulation();
+        sim_timer = new Timer(time_task);
 
     } // End LifeSim_Interface_server()
     
@@ -164,6 +163,7 @@ public class LifeSim_Interface {
     public void start_sim() 
     {
         sim_state = Sim_State.GO;
+        sim_timer.start();
 
     } // End start_sim()
     
@@ -177,6 +177,7 @@ public class LifeSim_Interface {
     public void pause_sim() 
     {
         sim_state = Sim_State.NOGO;
+        sim_timer.suspend();
         
     } // End pause_sim()
     
@@ -190,6 +191,7 @@ public class LifeSim_Interface {
     public void end_sim() 
     {
         sim_state = Sim_State.OFF;
+        sim_timer.terminate();
 
     } // End end_sim()
     
@@ -252,22 +254,16 @@ public class LifeSim_Interface {
      * 
      *********************************************************************/
     private class Start_Simulation implements Runnable {
-         
-        private Thread t;
-        private String threadName;
 
         /**********************************************************************
          *
          * FUNCTION: Start_Simulation()
          *
          * DESCRIPTION: constructor for local Start_Simulation class
-         *
-         * @param name
          * 
          *********************************************************************/
-        Start_Simulation(String name) 
+        Start_Simulation() 
         {
-           threadName = name;
 
         } // End Start_Simulation
 
@@ -275,47 +271,15 @@ public class LifeSim_Interface {
          *
          * FUNCTION: run()
          *
-         * DESCRIPTION: constructor for local Start_Simulation class
+         * DESCRIPTION: constructor for local Start_Simulation class. This is
+         * called by the timer on each tick.
          * 
          *********************************************************************/
         @Override
         public void run() 
         {
-    
-            // TODO make this relate to the timer
-            // TODO this will be where the simulation responds to outside
-            //      influence (from the GUI)
-
-            while(true)
-            {
-                switch(sim_state)
-                {
-                    case OFF:               break;
-                    case GO:   sim_clock++; break;
-                    case NOGO:              break;
-                    default:
-                        throw new AssertionError(sim_state.name());
-                }
-            }
-
-
+            ++sim_clock;
         } // End run()
- 
-        /**********************************************************************
-         *
-         * FUNCTION: start()
-         *
-         * DESCRIPTION: starts the thread for the Simulation
-         * 
-         *********************************************************************/
-        public void start() {
-            if (t == null) 
-            {
-                t = new Thread(this, threadName);
-                t.start ();
-            }
-        } // End start()
- 
     } // End Start_Simulation class
     
 } // End LifeSim_Interface class
