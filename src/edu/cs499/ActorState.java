@@ -12,12 +12,19 @@
  *
  * REVISION HISTORY:
  * 02-28-17  MPK  New.
+ * 03-01-17  MPK  Added critical sections so that there is no corrupt data
+ *                caused by the GUI loop trying to read the actors states
+ *                while the ActorState is writing back to the state after
+ *                running all of the evolve functionality.
  *
  ******************************************************************************/
 package edu.cs499;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ActorState {
     
@@ -68,6 +75,8 @@ public class ActorState {
     private int    p_max_offspring          = 0;
     private int    p_offspring_energy_level = 0;
     
+    private final Semaphore semaphore;
+    
     /**********************************************************************
      *
      * FUNCTION: ActorState()
@@ -77,6 +86,8 @@ public class ActorState {
      *********************************************************************/
     public ActorState()
     {
+        semaphore = new Semaphore(1);
+        
         // constructor 
         ActorState_create();
         
@@ -91,6 +102,8 @@ public class ActorState {
      *********************************************************************/
     private void ActorState_create()
     {
+        
+        enter_critical_section();
         
         // get the singleton and initalize the data parser
         LifeSimDataParser lsdp = LifeSimDataParser.getInstance();
@@ -197,9 +210,43 @@ public class ActorState {
             }
         }
         
+        exit_critical_section();
+        
     } // End ActorState_create()
+        
+    /**********************************************************************
+     *
+     * FUNCTION: enter_critical_section()
+     *
+     * DESCRIPTION: enters the critical section where the GUI requests
+     *              the current state or when the state is being written to.
+     *
+     *********************************************************************/
+    private void enter_critical_section()
+    {
+        try {
+            semaphore.acquire(1);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ActorState.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    } // End enter_critical_section()
     
-      /**********************************************************************
+    /**********************************************************************
+     *
+     * FUNCTION: exit_critical_section()
+     *
+     * DESCRIPTION: exits the critical section where the GUI requests
+     *              the current state or when the state is being written to.
+     * 
+     *********************************************************************/
+    private void exit_critical_section()
+    {
+        semaphore.release(1);
+
+    } // End exit_critical_section()
+    
+    /**********************************************************************
      *
      * FUNCTION: get_rock_list()
      *
@@ -210,7 +257,13 @@ public class ActorState {
      *********************************************************************/
     public List<Rock> get_rock_list_state() 
     {
-        return rock_list;
+        List<Rock> rocks = new ArrayList<>();
+        
+        enter_critical_section();
+        rocks = rock_list;
+        exit_critical_section();
+        
+        return rocks;
 
     } // End get_rock_list()
     
@@ -225,7 +278,13 @@ public class ActorState {
      *********************************************************************/
     public List<PlantLife> get_plant_life_list_state() 
     {
-        return plant_life_list;
+        List<PlantLife> plant_life = new ArrayList<>();
+        
+        enter_critical_section();
+        plant_life = plant_life_list;
+        exit_critical_section();
+        
+        return plant_life;
 
     } // End get_plant_life_list()
     
@@ -240,7 +299,13 @@ public class ActorState {
      *********************************************************************/
     public List<Herbivore> get_herbivore_list_state() 
     {
-        return herbivore_list;
+        List<Herbivore> herbivore = new ArrayList<>();
+        
+        enter_critical_section();
+        herbivore = herbivore_list;
+        exit_critical_section();
+        
+        return herbivore;
 
     } // End get_herbivore_list()
     
@@ -255,7 +320,13 @@ public class ActorState {
      *********************************************************************/
     public List<Predator> get_predator_list_state() 
     {
-        return predator_list;
+        List<Predator> predators = new ArrayList<>();
+        
+        enter_critical_section();
+        predators = predator_list;
+        exit_critical_section();
+        
+        return predators;
 
     } // End get_predator_list()
     
@@ -268,8 +339,33 @@ public class ActorState {
      *********************************************************************/
     public void ActorState_evolve()
     {
+        // use these local values to manipulate the values before
+        // writing back
+        List<Rock>      evolve_rocks      = new ArrayList<>();
+        List<PlantLife> evolve_plant_life = new ArrayList<>();
+        List<Herbivore> evolve_herbivore  = new ArrayList<>();
+        List<Predator>  evolve_predator   = new ArrayList<>();
+        
+        // get the current state values
+        enter_critical_section();
+        evolve_rocks      = rock_list;
+        evolve_plant_life = plant_life_list;
+        evolve_herbivore  = herbivore_list;
+        evolve_predator   = predator_list;
+        exit_critical_section();
+        
         // TODO evolve the simulation one unit of time
         System.out.println("ActorState_evolve() called");
+        
+
+        
+        // write the values back to the state
+        enter_critical_section();
+        rock_list       = evolve_rocks;
+        plant_life_list = evolve_plant_life;
+        herbivore_list  = evolve_herbivore;
+        predator_list   = evolve_predator;
+        exit_critical_section();
 
     } // End ActorState_evolve()
     

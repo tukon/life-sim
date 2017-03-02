@@ -13,6 +13,10 @@
  * 02-28-17  MPK  Added events for the buttons.
  *                Added functionality to control the update process of the
  *                canvas object.
+ * 03-01-17  MPK  Made the speed buttons gray out once the simulation has been
+ *                ended. (Adam changed the end button functionality in the 
+ *                last commit to gray out the start button because the timer
+ *                can't be started again once stopped.)
  *
  ******************************************************************************/
 package edu.cs499;
@@ -51,7 +55,7 @@ public class GUI_FXMLController implements Initializable {
     @FXML
     private Button SpeedButton_100;
     @FXML
-    private Button GenReportButton;
+    private Button GenReportButton; // Not used 
     @FXML
     private TextField FilenameInput;
     @FXML
@@ -254,6 +258,10 @@ public class GUI_FXMLController implements Initializable {
         StartButton.setDisable(true);
         PauseButton.setDisable(true);
         EndButton.setDisable(true);
+        SpeedButton_1.setDisable(true);
+        SpeedButton_10.setDisable(true);
+        SpeedButton_50.setDisable(true);
+        SpeedButton_100.setDisable(true);
         retrieve_actor_states = false;
         
     } // End end_button_event()

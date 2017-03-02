@@ -22,6 +22,8 @@
  *                (units pass).
  *                The GUI interacts with this class to manipulate the flow of 
  *                the simulation.
+ * 03-01-17  MPK  Added the ActorState_evolve function to the timer function.
+ *                (Adam added the timer functionality in the last revision).
  *
  ******************************************************************************/
 package edu.cs499;
@@ -278,8 +280,14 @@ public class LifeSim_Interface {
         @Override
         public void run() 
         {
+            // move the simulation one time unit forward
+            sim_actor_state.ActorState_evolve();
+            
+            // move the simulation clock for the GUI one time unit forward.
             ++sim_clock;
+            
         } // End run()
+        
     } // End Start_Simulation class
     
 } // End LifeSim_Interface class
