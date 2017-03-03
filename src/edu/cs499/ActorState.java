@@ -19,12 +19,17 @@
  * 03-02-17  MPK  Added functionality to evolve each of the individual, current
  *                actors in the list.
  *                Also started adding code for the evolution for the plant life.
+ * 03-03-17  MPK  Added functionality for the growth of the plant life.
+ *                No functionality yet implemented for the plant life being 
+ *                eaten by the herbivore.
  *
  ******************************************************************************/
 package edu.cs499;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,6 +44,11 @@ public class ActorState {
     private List<PlantLife> plant_life_list = new ArrayList<>();
     private List<Herbivore> herbivore_list  = new ArrayList<>();
     private List<Predator>  predator_list   = new ArrayList<>();
+    
+    // create lists for offspring creation
+    private List<PlantLife> plant_life_germination_list = new ArrayList<>();
+    private List<Herbivore> herbivore_offspring_list  = new ArrayList<>();
+    private List<Predator>  predator_offspring_list   = new ArrayList<>();
     
     // initialize variables needed for storing
     private int iPlantCount    = 0;
@@ -59,6 +69,7 @@ public class ActorState {
     private int    pl_max_size               = 0;
     private int    pl_max_seed_cast_distance = 0;
     private int    pl_max_seed_number        = 0;
+    private int    pl_germination_time       = 10;
 
     // Herbivore global info
     private double h_maintain_speed_time     = 0.0;
@@ -78,6 +89,7 @@ public class ActorState {
     private int    p_max_offspring          = 0;
     private int    p_offspring_energy_level = 0;
     
+    private List<Integer[]> current_coords;
     private final Semaphore semaphore;
     
     /**********************************************************************
@@ -90,6 +102,7 @@ public class ActorState {
     public ActorState()
     {
         semaphore = new Semaphore(1);
+        current_coords = new ArrayList<Integer[]>(2);
         
         // constructor 
         ActorState_create();
@@ -157,7 +170,7 @@ public class ActorState {
             if(lsdp.getPlantData())
             {
                 // create a new plant_life object with the current statistics
-                PlantLife plant_life = new PlantLife(lsdp.PlantX, lsdp.PlantY, lsdp.PlantDiameter);
+                PlantLife plant_life = new PlantLife(lsdp.PlantX, lsdp.PlantY, lsdp.PlantDiameter, 0); // no germination timer for existing plants
                 // add it to the list of plant life.
                 plant_life_list.add(plant_life);
             }
@@ -344,7 +357,7 @@ public class ActorState {
     {
         // use these local values to manipulate the values before
         // writing back
-        //List<Rock>      evolve_rocks      = new ArrayList<>();
+        List<Rock>      evolve_rocks      = new ArrayList<>();
         List<PlantLife> evolve_plant_life = new ArrayList<>();
         List<Herbivore> evolve_herbivore  = new ArrayList<>();
         List<Predator>  evolve_predator   = new ArrayList<>();
@@ -352,23 +365,50 @@ public class ActorState {
         // get the current state values
         // probably uneccessary for ciritcal sections to be here
         enter_critical_section();
-        //evolve_rocks      = rock_list;
+        evolve_rocks      = rock_list;
         evolve_plant_life = plant_life_list;
         evolve_herbivore  = herbivore_list;
         evolve_predator   = predator_list;
         exit_critical_section();
         
+        // store the current x,y coordinates of all actors.
+        // this will be checked against so that no actors will overlap
+        
+        refresh_coordinate_list(evolve_rocks, 
+                                evolve_plant_life, 
+                                evolve_herbivore, 
+                                evolve_predator);
+        
         // evolve the simulation one unit of time
         
         // evolve plant life
+        // clear plant_life_germination_list before starting
+        plant_life_germination_list.clear();
         for (int i = 0; i < evolve_plant_life.size(); i++) {
             evolve_plant_life.set(i, evolve_a_plant(evolve_plant_life.get(i)));
         }
         
+        // add any plant life that were successfully germinated
+        for (PlantLife new_plant_life : plant_life_germination_list) {
+            evolve_plant_life.add(new_plant_life);
+        }
+        
+        // refresh coordinate list after plant life moved
+        refresh_coordinate_list(evolve_rocks, 
+                                evolve_plant_life, 
+                                evolve_herbivore, 
+                                evolve_predator);
+                
         // evolve herbivore
         for (int i = 0; i < evolve_herbivore.size(); i++) {
             evolve_herbivore.set(i, evolve_a_herbivore(evolve_herbivore.get(i)));
         }
+        
+        // refresh coordinate list after herbivores move
+        refresh_coordinate_list(evolve_rocks, 
+                                evolve_plant_life, 
+                                evolve_herbivore, 
+                                evolve_predator);
         
         // evolve predators
         for (int i = 0; i < evolve_predator.size(); i++) {
@@ -390,18 +430,29 @@ public class ActorState {
      * FUNCTION: evolve_a_plant()
      *
      * DESCRIPTION: evolves a plant
+     * 
+     * @param pl
+     * @return
      *
      *********************************************************************/
     private PlantLife evolve_a_plant(PlantLife pl)
     {
-        // evolve the plant
-        int diameter = pl.get_diameter();
+        // if a seed is still germinating
+        if (pl.get_germination_timer() < pl_germination_time)
+        {
+            // increment timer then return
+            pl.increment_germination_timer();
+            return pl;
+        }
+        
+        // evolve the plant if germinated
+        double diameter = pl.get_diameter();
         
         // grow the plant if it is not at max size
         if (diameter < pl_max_size)
         {
             // grow the plant
-            int new_diameter = (int)(diameter + diameter * pl_growth_rate);
+            double new_diameter = diameter + diameter * pl_growth_rate;
             
             // check to see if it grew past max size
             if (new_diameter > pl_max_size)
@@ -411,30 +462,41 @@ public class ActorState {
             diameter = new_diameter;
         }
         
-        // if the plant hax reached maxed size, germinate
+        // if the plant has reached maxed size, germinate
         if (diameter >= pl_max_size)
         {
             // increment the timer by one
             pl.increment_seed_pod_timer();
             
-            // if the timer reaches the time to germinate, do it
+            // if the timer reaches the time to germinate, germinate!
             if (pl.get_seed_pod_timer() >= 3600)
             {
-                // TODO germinate
-                System.out.println("A plant germinated!");
+                // create random object
+                Random rand = new Random();
+                // find random number of seeds that plant will attempt to germinate
+                int seeds = rand.nextInt(pl_max_seed_number);
+                // multiply seeds by the viability to see how many will survive
+                seeds = (int)(seeds * pl_seed_viability);
+                // create int list to find coordinates where the seeds will be 
+                // planted
+                List<Integer[]> seed_coords = new ArrayList<Integer[]>(2);
+                seed_coords = find_seed_coords(seeds, pl.get_x_pos(), pl.get_y_pos());
                 
-                // TODO produce a random number of seeds from 0 to 
-                //      "pl_max_seed_number" that are cast randomly in
-                //      a radius around the plant "pl_max_seed_cast_distance"
-                //      that also doesn't occupy another actor. Only a 
-                //      percentage of these seeds will grow, defined by
-                //      "pl_seed_viability"
-                //      when a seed is produced, and is viable, it will 
-                //      be produced 10 units of time later (have a germination
-                //      counter before it starts doing regular shit.)
-                //      The new plant will be initalized with the radius of
-                //      1/100 of a distance unit. (.001)
-        
+                // for each set of coordinates, add a new plant, then add to the
+                // master list.
+                for (Integer[] coords : seed_coords) {
+                    // if germination happens, add to the last, so it can be
+                    // added once evolving is done.
+                    PlantLife plant_life = new PlantLife(coords[0], coords[1], .001, 10);
+                    plant_life_germination_list.add(plant_life);
+                    
+                    // add the coordinates to the master list.
+                    // list will be refreshed after all of plant life is done
+                    // being evolved. until then, we don't want plant life
+                    // planting more plant life in this same coordinate!
+                    current_coords.add(coords);
+                }
+
                 // reset the timer after spreading the seeds
                 pl.reset_seed_pod_timer();
             }
@@ -456,6 +518,9 @@ public class ActorState {
      * FUNCTION: evolve_a_herbivore()
      *
      * DESCRIPTION: evolves a herbivore
+     * 
+     * @param h
+     * @return 
      *
      *********************************************************************/
     private Herbivore evolve_a_herbivore(Herbivore h)
@@ -472,6 +537,9 @@ public class ActorState {
      * FUNCTION: evolve_a_predator()
      *
      * DESCRIPTION: evolves a predator
+     * 
+     * @param p
+     * @return
      *
      *********************************************************************/
     private Predator evolve_a_predator(Predator p)
@@ -482,5 +550,114 @@ public class ActorState {
         return p;
         
     } // End evolve_a_predator()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: refresh_coordinate_list()
+     *
+     * DESCRIPTION: refreshes the current coordinates to be checked 
+     *              against when moving actors
+     * 
+     * @param rock_list
+     * @param plant_life_list
+     * @param herbivore_list
+     * @param predator_list
+     *
+     *********************************************************************/
+    private void refresh_coordinate_list(List<Rock>      rock_list, 
+                                         List<PlantLife> plant_life_list, 
+                                         List<Herbivore> herbivore_list, 
+                                         List<Predator>  predator_list)
+    {
+        // clear list first
+        current_coords.clear();
+        // add rock coords
+        rock_list.stream().map((rock) -> new Integer[] {rock.x_pos, rock.y_pos}).forEachOrdered((coords) -> {
+            current_coords.add(coords);
+        });
+        // add plant life coords
+        plant_life_list.stream().map((plant) -> new Integer[] {plant.x_pos, plant.y_pos}).forEachOrdered((coords) -> {
+            current_coords.add(coords);
+        });
+        // add herbivore coords
+        herbivore_list.stream().map((herbivore) -> new Integer[] {herbivore.x_pos, herbivore.y_pos}).forEachOrdered((coords) -> {
+            current_coords.add(coords);
+        });
+        // add predator coords
+        predator_list.stream().map((predator) -> new Integer[] {predator.x_pos, predator.y_pos}).forEachOrdered((coords) -> {
+            current_coords.add(coords);
+        });
+        
+    } // End refresh_coordinate_list()
+
+    /**********************************************************************
+     *
+     * FUNCTION: find_seed_coords()
+     *
+     * DESCRIPTION: finds the seed coordinates
+     * 
+     * @param seeds
+     * @param xCenter
+     * @param yCenter
+     * @return
+     *
+     *********************************************************************/
+    private List<Integer[]> find_seed_coords(int seeds, int xCenter, int yCenter)
+    {
+        List<Integer[]> possible_seed_coords = new ArrayList<Integer[]>(2);
+        List<Integer[]> seed_coords = new ArrayList<Integer[]>(2);
+        int radius = pl_max_seed_cast_distance;
+        
+        // TODO find seed coordinates
+        
+        // find all possible coordinates within the max seed cast distance
+        // from the coordinate the plant is rooted.
+        for (int x = xCenter - radius ; x <= xCenter; x++)
+        {
+            for (int y = yCenter - radius ; y <= yCenter; y++)
+            {
+                // we don't have to take the square root, it's slow
+                if ((x - xCenter)*(x - xCenter) + (y - yCenter)*(y - yCenter) <= radius*radius) 
+                {
+                    int xSym = xCenter - (x - xCenter);
+                    int ySym = yCenter - (y - yCenter);
+                    // (x, y), (x, ySym), (xSym , y), (xSym, ySym) are in the circle
+                    possible_seed_coords.add(new Integer[] {x,    y});
+                    possible_seed_coords.add(new Integer[] {x,    ySym});
+                    possible_seed_coords.add(new Integer[] {xSym, y});
+                    possible_seed_coords.add(new Integer[] {xSym, ySym});
+                }
+            }
+        }
+        
+        // find random, and unique coordinates, randomly, for the number
+        // of seeds that will germinate.
+        Random rand = new Random();
+        for (int x = 0; x < seeds; x++)
+        {
+            // get random index out of the possible indices
+            int random_coord_index = rand.nextInt(possible_seed_coords.size());
+            
+            // if the coordinate already contains someone, discard this index
+            // and add another x to the loop so we still get the appropiate
+            // amount of germinated seeds cast.
+            if (current_coords.contains(possible_seed_coords.get(random_coord_index)))
+            {
+                possible_seed_coords.remove(random_coord_index);
+                x--;
+            }
+            else
+            {
+                // add those coordinates, with the index, to the seed_coords list
+                seed_coords.add(possible_seed_coords.get(random_coord_index));
+                // remove the index added from the list of possible seed locations.
+                possible_seed_coords.remove(random_coord_index);
+            }
+        }
+        
+        // return the list of seed coordinates
+        return seed_coords;
+        
+    } // End find_seed_coords()
     
 } // End ActorState Class
