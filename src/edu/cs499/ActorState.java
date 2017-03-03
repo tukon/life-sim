@@ -16,6 +16,9 @@
  *                caused by the GUI loop trying to read the actors states
  *                while the ActorState is writing back to the state after
  *                running all of the evolve functionality.
+ * 03-02-17  MPK  Added functionality to evolve each of the individual, current
+ *                actors in the list.
+ *                Also started adding code for the evolution for the plant life.
  *
  ******************************************************************************/
 package edu.cs499;
@@ -142,7 +145,7 @@ public class ActorState {
          ***************************************************************/ 
                 
         // Plant info functions
-        iPlantCount               = lsdp.getInitialPlantCount();   // Inital plant count
+        iPlantCount               = lsdp.getInitialPlantCount();   // Initial plant count
         pl_growth_rate            = lsdp.getPlantGrowthRate();     // Plant growth rate
         pl_max_size               = lsdp.getMaxPlantSize();        // Max plant size
         pl_max_seed_cast_distance = lsdp.getMaxSeedCastDistance(); // Max seed casting distance
@@ -334,39 +337,150 @@ public class ActorState {
      *
      * FUNCTION: ActorState_evolve()
      *
-     * DESCRIPTION: evolves the sumulation one unit of time.
+     * DESCRIPTION: evolves the simulation one unit of time.
      *
      *********************************************************************/
     public void ActorState_evolve()
     {
         // use these local values to manipulate the values before
         // writing back
-        List<Rock>      evolve_rocks      = new ArrayList<>();
+        //List<Rock>      evolve_rocks      = new ArrayList<>();
         List<PlantLife> evolve_plant_life = new ArrayList<>();
         List<Herbivore> evolve_herbivore  = new ArrayList<>();
         List<Predator>  evolve_predator   = new ArrayList<>();
         
         // get the current state values
+        // probably uneccessary for ciritcal sections to be here
         enter_critical_section();
-        evolve_rocks      = rock_list;
+        //evolve_rocks      = rock_list;
         evolve_plant_life = plant_life_list;
         evolve_herbivore  = herbivore_list;
         evolve_predator   = predator_list;
         exit_critical_section();
         
-        // TODO evolve the simulation one unit of time
-        System.out.println("ActorState_evolve() called");
+        // evolve the simulation one unit of time
         
-
+        // evolve plant life
+        for (int i = 0; i < evolve_plant_life.size(); i++) {
+            evolve_plant_life.set(i, evolve_a_plant(evolve_plant_life.get(i)));
+        }
+        
+        // evolve herbivore
+        for (int i = 0; i < evolve_herbivore.size(); i++) {
+            evolve_herbivore.set(i, evolve_a_herbivore(evolve_herbivore.get(i)));
+        }
+        
+        // evolve predators
+        for (int i = 0; i < evolve_predator.size(); i++) {
+            evolve_predator.set(i, evolve_a_predator(evolve_predator.get(i)));
+        }
         
         // write the values back to the state
         enter_critical_section();
-        rock_list       = evolve_rocks;
+        //rock_list       = evolve_rocks;
         plant_life_list = evolve_plant_life;
         herbivore_list  = evolve_herbivore;
         predator_list   = evolve_predator;
         exit_critical_section();
 
     } // End ActorState_evolve()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: evolve_a_plant()
+     *
+     * DESCRIPTION: evolves a plant
+     *
+     *********************************************************************/
+    private PlantLife evolve_a_plant(PlantLife pl)
+    {
+        // evolve the plant
+        int diameter = pl.get_diameter();
+        
+        // grow the plant if it is not at max size
+        if (diameter < pl_max_size)
+        {
+            // grow the plant
+            int new_diameter = (int)(diameter + diameter * pl_growth_rate);
+            
+            // check to see if it grew past max size
+            if (new_diameter > pl_max_size)
+                new_diameter = pl_max_size;
+            
+            // assign back the value
+            diameter = new_diameter;
+        }
+        
+        // if the plant hax reached maxed size, germinate
+        if (diameter >= pl_max_size)
+        {
+            // increment the timer by one
+            pl.increment_seed_pod_timer();
+            
+            // if the timer reaches the time to germinate, do it
+            if (pl.get_seed_pod_timer() >= 3600)
+            {
+                // TODO germinate
+                System.out.println("A plant germinated!");
+                
+                // TODO produce a random number of seeds from 0 to 
+                //      "pl_max_seed_number" that are cast randomly in
+                //      a radius around the plant "pl_max_seed_cast_distance"
+                //      that also doesn't occupy another actor. Only a 
+                //      percentage of these seeds will grow, defined by
+                //      "pl_seed_viability"
+                //      when a seed is produced, and is viable, it will 
+                //      be produced 10 units of time later (have a germination
+                //      counter before it starts doing regular shit.)
+                //      The new plant will be initalized with the radius of
+                //      1/100 of a distance unit. (.001)
+        
+                // reset the timer after spreading the seeds
+                pl.reset_seed_pod_timer();
+            }
+
+        }
+        
+        // set the new diameter
+        pl.set_diameter(diameter);
+        // set the height as the radius of the plant
+        pl.set_height(diameter/2);
+        
+        // return plant life data once it's done being manipulated.
+        return pl;
+        
+    } // End evolve_a_plant()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: evolve_a_herbivore()
+     *
+     * DESCRIPTION: evolves a herbivore
+     *
+     *********************************************************************/
+    private Herbivore evolve_a_herbivore(Herbivore h)
+    {
+        // TODO evolve the herbivore
+        
+        // return herbivore data once it's done being manipulated.
+        return h;
+        
+    } // End evolve_a_herbivore()
+    
+    /**********************************************************************
+     *
+     * FUNCTION: evolve_a_predator()
+     *
+     * DESCRIPTION: evolves a predator
+     *
+     *********************************************************************/
+    private Predator evolve_a_predator(Predator p)
+    {
+        // TODO evolve the predator
+        
+        // return predator data once it's done being manipulated.
+        return p;
+        
+    } // End evolve_a_predator()
     
 } // End ActorState Class
