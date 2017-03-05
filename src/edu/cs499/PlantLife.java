@@ -25,6 +25,8 @@ public class PlantLife extends Actor {
     private double height; // needs to be double, because it halves the diameter
     private int    seed_pod_timer;
     private int    germination_timer;
+    private boolean reachedMaxSize = false;
+    private boolean isAlive = true;
     
     /**********************************************************************
      *
@@ -122,8 +124,11 @@ public class PlantLife extends Actor {
      *********************************************************************/
     public void set_diameter(double new_diameter)
     {
+        int diff = ((int)new_diameter - (int)this.diameter)/2;
         this.diameter = new_diameter;
         
+        this.set_x_pos(this.get_x_pos() - diff);
+        this.set_y_pos(this.get_y_pos() - diff);
     } // End set_diameter
     
     /**********************************************************************
@@ -180,4 +185,21 @@ public class PlantLife extends Actor {
         
     } // End reset_seed_pod_timer
     
+    public void setReachedMaxSize()
+    {
+        this.reachedMaxSize = true;
+    }
+    
+    public boolean isGrowing() 
+    {
+        return !this.reachedMaxSize;
+    }
+    
+    public void setIsAlive(boolean val) {
+        this.isAlive = val;
+    }
+    
+    public boolean isAlive() {
+        return this.isAlive;
+    }
 } // End PlantLife class

@@ -198,7 +198,7 @@ public class GUI_FXMLController implements Initializable {
                     // THIS DOES NOT FOLLOW THE SAME RULES AS THE TIMER
                     // (it will continue to "move" in the background,
                     //  regardless of the paused or ended state.)
-                    gc.fillRect(x, y, x, y);
+                    //gc.fillRect(x, y, x, y);
 
                     // test printout
                     //System.out.println("looping");

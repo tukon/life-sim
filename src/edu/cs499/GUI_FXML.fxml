@@ -22,9 +22,7 @@
       <Label layoutX="1121.0" layoutY="185.0" text="Speed" />
       <TextField fx:id="FilenameInput" layoutX="1039.0" layoutY="716.0" prefHeight="25.0" prefWidth="127.0" text="Filename" />
       <Canvas fx:id="canvas" height="750.0" layoutX="20.0" layoutY="20.0" width="1000.0">
-         <effect>
-            <Shadow color="#75eb96" />
-         </effect></Canvas>
+      </Canvas>
       <TextField fx:id="TimeTextField" editable="false" layoutX="1113.0" layoutY="8.0" prefHeight="25.0" prefWidth="55.0" />
    </children>
 </AnchorPane>

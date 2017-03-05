@@ -193,7 +193,8 @@ public class ActorState {
             if(lsdp.getGrazerData())
             {
                 // create a new herbivore object with the current statistics
-                Herbivore herbivore = new Herbivore(lsdp.GrazerX, lsdp.GrazerY, lsdp.GrazerEnergy);
+                Herbivore herbivore = new Herbivore(lsdp.GrazerX, lsdp.GrazerY, lsdp.GrazerEnergy, h_energy_input_rate,
+                                                    h_energy_output_rate, h_energy_to_reproduce, h_maintain_speed_time, h_max_speed);
                 // add it to the list of herbivores.
                 herbivore_list.add(herbivore);
             }
@@ -385,7 +386,13 @@ public class ActorState {
         // clear plant_life_germination_list before starting
         plant_life_germination_list.clear();
         for (int i = 0; i < evolve_plant_life.size(); i++) {
-            evolve_plant_life.set(i, evolve_a_plant(evolve_plant_life.get(i)));
+            PlantLife pl = evolve_a_plant(evolve_plant_life.get(i));
+            if (pl.isAlive()) {
+                evolve_plant_life.set(i, pl);
+            }
+            else {
+                evolve_plant_life.remove(i);
+            }
         }
         
         // add any plant life that were successfully germinated
@@ -401,7 +408,21 @@ public class ActorState {
                 
         // evolve herbivore
         for (int i = 0; i < evolve_herbivore.size(); i++) {
-            evolve_herbivore.set(i, evolve_a_herbivore(evolve_herbivore.get(i)));
+            Herbivore h = evolve_a_herbivore(evolve_herbivore.get(i));
+            if (h.isAlive()) {
+                // If our herbivore reproduced, generate a new one with half the original's energy
+                if (h.hasReproduced()) {
+                    evolve_herbivore.add(new Herbivore(h.get_x_pos()+20, h.get_y_pos()+20, h.get_energy()/2, h_energy_input_rate,
+                                                    h_energy_output_rate, h_energy_to_reproduce, h_maintain_speed_time, h_max_speed));
+                    h.set_energy(h.get_energy()/2);
+                    h.setReproduced(false);
+                }
+                evolve_herbivore.set(i, h);
+                
+            }
+            else {
+                evolve_herbivore.remove(i);
+            }
         }
         
         // refresh coordinate list after herbivores move
@@ -437,76 +458,80 @@ public class ActorState {
      *********************************************************************/
     private PlantLife evolve_a_plant(PlantLife pl)
     {
-        // if a seed is still germinating
-        if (pl.get_germination_timer() < pl_germination_time)
-        {
-            // increment timer then return
-            pl.increment_germination_timer();
-            return pl;
-        }
-        
-        // evolve the plant if germinated
-        double diameter = pl.get_diameter();
-        
-        // grow the plant if it is not at max size
-        if (diameter < pl_max_size)
-        {
-            // grow the plant
-            double new_diameter = diameter + diameter * pl_growth_rate;
-            
-            // check to see if it grew past max size
-            if (new_diameter > pl_max_size)
-                new_diameter = pl_max_size;
-            
-            // assign back the value
-            diameter = new_diameter;
-        }
-        
-        // if the plant has reached maxed size, germinate
-        if (diameter >= pl_max_size)
-        {
-            // increment the timer by one
-            pl.increment_seed_pod_timer();
-            
-            // if the timer reaches the time to germinate, germinate!
-            if (pl.get_seed_pod_timer() >= 3600)
+        if (pl.isAlive()) {
+            // if a seed is still germinating
+            if (pl.get_germination_timer() < pl_germination_time)
             {
-                // create random object
-                Random rand = new Random();
-                // find random number of seeds that plant will attempt to germinate
-                int seeds = rand.nextInt(pl_max_seed_number);
-                // multiply seeds by the viability to see how many will survive
-                seeds = (int)(seeds * pl_seed_viability);
-                // create int list to find coordinates where the seeds will be 
-                // planted
-                List<Integer[]> seed_coords = new ArrayList<Integer[]>(2);
-                seed_coords = find_seed_coords(seeds, pl.get_x_pos(), pl.get_y_pos());
-                
-                // for each set of coordinates, add a new plant, then add to the
-                // master list.
-                for (Integer[] coords : seed_coords) {
-                    // if germination happens, add to the last, so it can be
-                    // added once evolving is done.
-                    PlantLife plant_life = new PlantLife(coords[0], coords[1], .001, 10);
-                    plant_life_germination_list.add(plant_life);
-                    
-                    // add the coordinates to the master list.
-                    // list will be refreshed after all of plant life is done
-                    // being evolved. until then, we don't want plant life
-                    // planting more plant life in this same coordinate!
-                    current_coords.add(coords);
-                }
-
-                // reset the timer after spreading the seeds
-                pl.reset_seed_pod_timer();
+                // increment timer then return
+                pl.increment_germination_timer();
+                return pl;
             }
 
+            if (pl.isGrowing()) {
+                // evolve the plant if germinated
+                double diameter = pl.get_diameter();
+
+                // grow the plant if it is not at max size
+                if (diameter < pl_max_size)
+                {
+                    // grow the plant
+                    double new_diameter = diameter + diameter * pl_growth_rate;
+
+                    // check to see if it grew past max size
+                    if (new_diameter > pl_max_size)
+                    {
+                        new_diameter = pl_max_size;
+                        pl.setReachedMaxSize();
+                    }
+
+                    // assign back the value
+                    diameter = new_diameter;
+                }
+
+                // set the new diameter
+                pl.set_diameter(diameter);
+                // set the height as the radius of the plant
+                pl.set_height(diameter/2);
+            }
+            else {
+                // if the plant has reached maxed size, germinate
+                // increment the timer by one
+                pl.increment_seed_pod_timer();
+
+                // if the timer reaches the time to germinate, germinate!
+                if (pl.get_seed_pod_timer() >= 3600)
+                {
+                    // create random object
+                    Random rand = new Random();
+                    // find random number of seeds that plant will attempt to germinate
+                    int seeds = rand.nextInt(pl_max_seed_number);
+                    // multiply seeds by the viability to see how many will survive
+                    seeds = (int)(seeds * pl_seed_viability);
+                    // create int list to find coordinates where the seeds will be 
+                    // planted
+                    List<Integer[]> seed_coords = new ArrayList<Integer[]>(2);
+                    seed_coords = find_seed_coords(seeds, pl.get_x_pos(), pl.get_y_pos());
+
+                    // for each set of coordinates, add a new plant, then add to the
+                    // master list.
+                    for (Integer[] coords : seed_coords) {
+                        // if germination happens, add to the last, so it can be
+                        // added once evolving is done.
+                        PlantLife plant_life = new PlantLife(coords[0], coords[1], .001, 10);
+                        plant_life_list.add(plant_life);
+
+                        // add the coordinates to the master list.
+                        // list will be refreshed after all of plant life is done
+                        // being evolved. until then, we don't want plant life
+                        // planting more plant life in this same coordinate!
+                        current_coords.add(coords);
+                    }
+
+                    // reset the timer after spreading the seeds
+                    pl.reset_seed_pod_timer();
+                }
+            }
         }
-        
-        // set the new diameter
-        pl.set_diameter(diameter);
-        // set the height as the radius of the plant
-        pl.set_height(diameter/2);
         
         // return plant life data once it's done being manipulated.
         return pl;
@@ -525,11 +550,19 @@ public class ActorState {
      *********************************************************************/
     private Herbivore evolve_a_herbivore(Herbivore h)
     {
-        // TODO evolve the herbivore
-        
+        if (h.isAlive()) {
+            // If currently eating, continue 
+            if (h.isEating()) 
+            {
+                h.eat();
+            }
+            else {
+                h.moveToFood(plant_life_list, rock_list, herbivore_list);
+            }
+        }    
+    
         // return herbivore data once it's done being manipulated.
         return h;
-        
     } // End evolve_a_herbivore()
     
     /**********************************************************************

@@ -94,7 +94,7 @@ public class Actor {
      *********************************************************************/
     public void set_y_pos(int new_y_pos)
     {
-        this.x_pos = new_y_pos;
+        this.y_pos = new_y_pos;
         
     } // End set_y_pos()
     
