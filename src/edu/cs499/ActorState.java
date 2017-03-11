@@ -221,7 +221,26 @@ public class ActorState {
             if(lsdp.getPredatorData())
             {
                 // create a new predator object with the current statistics
-                Predator predator = new Predator(lsdp.PredatorX, lsdp.PredatorY, lsdp.PredatorEnergy, lsdp.PredatorGenotype);
+                int genes = Predator.parse_genotype(lsdp.PredatorGenotype);
+                double max_speed = 0.0;
+                switch (genes & Predator.SPEED)
+                {
+                case Predator.SPD_1 | Predator.SPD_2:  // FF
+                    max_speed = p_max_speed_hod;
+                    break;
+                case Predator.SPD_1:  // Ff
+                case Predator.SPD_2:  // fF
+                    max_speed = p_max_speed_hed;
+                    break;
+                default:  // ff
+                    max_speed = p_max_speed_hor;
+                }
+                
+                Predator predator = new Predator(lsdp.PredatorX, lsdp.PredatorY,
+                    lsdp.PredatorEnergy, p_energy_output_rate/5, genes,
+                    p_maintain_speed_time, max_speed, p_energy_to_reproduce,
+                    p_max_offspring, p_gestation_period,
+                    p_offspring_energy_level);
                 // add it to the list of predators.
                 predator_list.add(predator);
             }
@@ -577,7 +596,8 @@ public class ActorState {
      *********************************************************************/
     private Predator evolve_a_predator(Predator p)
     {
-        // TODO evolve the predator
+        p.think(predator_list, rock_list, herbivore_list, (int)w_grid_width,
+            (int)w_grid_height);
         
         // return predator data once it's done being manipulated.
         return p;
