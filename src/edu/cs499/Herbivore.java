@@ -314,6 +314,11 @@ public class Herbivore extends Actor {
         }
     }
     
+    public void die() {
+        this.energy = 0;
+        this.alive = false;
+    }
+    
     public boolean isAlive() {
         return this.alive;
     }

@@ -452,7 +452,16 @@ public class ActorState {
         
         // evolve predators
         for (int i = 0; i < evolve_predator.size(); i++) {
-            evolve_predator.set(i, evolve_a_predator(evolve_predator.get(i)));
+            //evolve_predator.set(i, evolve_a_predator(evolve_predator.get(i)));
+            Predator p = evolve_a_predator(evolve_predator.get(i));
+            if (p.is_alive())
+            {
+                // TODO: reproduction
+            }
+            else
+            {
+                evolve_predator.remove(i);
+            }
         }
         
         // write the values back to the state

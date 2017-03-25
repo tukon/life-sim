@@ -19,7 +19,7 @@ package edu.cs499;
 
 import java.awt.Point;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;  // used in wander()
+import java.util.concurrent.ThreadLocalRandom;  // used in wander() & attack()
 
 public class Predator extends Actor {
     
@@ -97,6 +97,105 @@ public class Predator extends Actor {
      * to mate with/attack.
      */
     private static final int TOUCHING_DISTANCE = 3;
+    
+    /**
+     * Gets the probability of a predator killing another predator based on
+     * their strength genes.
+     * @param hunter The hunter’s genes.
+     * @param target The target’s genes.
+     * @return A number between 0.0 and 1.0, or -1.0, which should be handled
+     *     like so:
+     *         • 50% chance of a draw
+     *         • 25% chance to win
+     *         • 25% chance to lose
+     */
+    private static float killChancePredator(int hunter, int target)
+    {
+        /*
+         *     #     Target
+         * self#  ss |  Ss |  SS
+         * ----#=====≠=====≠=====
+         *  ss #  ★  | 25% |  5% 
+         * ----#-----+-----+-----
+         *  Ss # 75% |  ★  | 25% 
+         * ----#-----+-----+-----
+         *  SS # 95% | 75% |  ★
+         * 
+         * ★: -1.0 is returned. These work like this:
+         *     • 50% chance of a draw
+         *     • 25% chance to win
+         *     • 25% chance to lose
+         */
+        
+        switch (hunter & STRENGTH)
+        {
+        case ~(Predator.STR_1 | Predator.STR_2): // ss
+                switch (target & STRENGTH)
+                {
+                case ~(Predator.STR_1 | Predator.STR_2):  //ss
+                    return -1.0f;
+                case Predator.STR_1:  // Ss
+                case Predator.STR_2:
+                    return 0.25f;
+                case (Predator.STR_1 | Predator.STR_2):  // SS
+                    return 0.05f;
+                }
+            break;
+        
+        case Predator.STR_1: // Ss
+        case Predator.STR_2:
+                switch (target & STRENGTH)
+                {
+                case ~(Predator.STR_1 | Predator.STR_2):  //ss
+                    return 0.75f;
+                case Predator.STR_1:  // Ss
+                case Predator.STR_2:
+                    return -1.0f;
+                case (Predator.STR_1 | Predator.STR_2):  // SS
+                    return 0.25f;
+                }
+            break;
+        
+        case (Predator.STR_1 | Predator.STR_2): // SS
+                switch (target & STRENGTH)
+                {
+                case ~(Predator.STR_1 | Predator.STR_2):  //ss
+                    return 0.95f;
+                case Predator.STR_1:  // Ss
+                case Predator.STR_2:
+                    return 0.75f;
+                case (Predator.STR_1 | Predator.STR_2):  // SS
+                    return -1.0f;
+                }
+            break;
+        }
+        
+        // The above switches should handle all possibilities, but the compiler
+        // doesn’t know that
+        System.err.println("FIXME: Predator::winChance() broke!");
+        System.err.printf("Inputs: %x, %x\n", hunter, target);
+        return -1.0f;
+    }
+    
+    /**
+     * Gets the probability of a predator killing a herbivore, based on the
+     * predator’s genes.
+     * @param predator The predator’s genes.
+     * @return A number between 0.0 and 1.0.
+     */
+    private static float killChanceHerbivore(int predator)
+    {
+        switch (predator & Predator.STRENGTH)
+        {
+        case Predator.STR_1:  // Ss
+        case Predator.STR_2:
+            return 0.75f;
+        case (Predator.STR_1 & Predator.STR_2):
+            return 0.95f;
+        default:  // ss
+            return 0.05f;
+        }
+    }
     
     // </editor-fold>
     
@@ -311,6 +410,15 @@ public class Predator extends Actor {
     {
         return this.energy;
         
+    }
+    
+    /**
+     * Indicates whether or not this predator is alive.
+     * @return True if it is alive, false if it is not.
+     */
+    public boolean is_alive()
+    {
+        return alive;
     }
     
     /**
@@ -610,12 +718,71 @@ public class Predator extends Actor {
     }
     
     /**
-     * Attack the given animal. Either it or this predator may die.
-     * @param target Animal to attack
+     * Attack the given predator. Either it or this predator may die.
+     * @param target Predator to attack
      */
     private void attack(Actor target)
     {
-        // TODO: implement attack()
+        float outcome = ThreadLocalRandom.current().nextFloat();
+        if (target instanceof Predator)
+        {
+            float chance = killChancePredator(genotype,
+                ((Predator)target).get_genotype());
+            
+            if (chance == -1.0)  // special case: see winChance
+            {
+                if (outcome < 0.5)  ignore(target);  // draw
+                else if (outcome < 0.75)  eat(target);  // win
+                else  die();  // lose
+            }
+            else if (outcome < chance)  eat(target);
+            else  die();
+        }
+        else if (target instanceof Herbivore)
+        {
+            float chance = killChanceHerbivore(genotype);
+            
+            if (outcome < chance)  eat(target);
+            else  ignore(target);// TODO: requirements don’t say what to do here
+        }
+    }
+    
+    /**
+     * Eats the given animal, killing it and giving this preadator energy.
+     * @param target The animal to kill & eat.
+     */
+    private void eat(Actor target)
+    {
+        // TODO: get_energy() and die() should probably be in Actor, so we don’t
+        // have to do this silly typecasting stuff
+        if (target instanceof Predator)
+        {
+            Predator p = (Predator)target;
+            energy += p.get_energy() * 0.90;
+            p.die();
+        }
+        else if (target instanceof Herbivore)
+        {
+            Herbivore h = (Herbivore)target;
+            energy += h.get_energy() * 0.90;
+            h.die();
+        }
+    }
+    
+    /** Kills this predator. */
+    public void die()
+    {
+        energy = 0;
+        alive = false;
+    }
+    
+    /**
+     * Ignore the given animal for some time.
+     * @param target Animal to ignore.
+     */
+    public void ignore(Actor target)
+    {
+        
     }
     
     /**
