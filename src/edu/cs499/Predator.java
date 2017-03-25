@@ -18,6 +18,7 @@
 package edu.cs499;
 
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;  // used in wander() & attack()
 
@@ -48,6 +49,17 @@ public class Predator extends Actor {
      * method.
      */
     private Point wanderTarget;
+    
+    /**
+     * Animals that this predator is ignoring.
+     */
+    private ArrayList<Actor> ignoredAnimals;
+    
+    /**
+     * How long this predator has been ignoring each animal in ignoredAnimals,
+     * in seconds.
+     */
+    private ArrayList<Integer> ignoredTime;
     
     // </editor-fold>
     
@@ -97,6 +109,11 @@ public class Predator extends Actor {
      * to mate with/attack.
      */
     private static final int TOUCHING_DISTANCE = 3;
+    
+    /**
+     * How long to ignore others for, in seconds.
+     */
+    private static final int IGNORE_TIME = 60 * 60;  // one hour
     
     /**
      * Gets the probability of a predator killing another predator based on
@@ -400,6 +417,9 @@ public class Predator extends Actor {
         maxOffspring = max_offspring;
         gestationPeriod = gestation_period;
         offspringEnergy = offspring_energy;
+        
+        ignoredAnimals = new ArrayList<>();
+        ignoredTime = new ArrayList<>();
     } // End Predator()
     
     /**
@@ -484,6 +504,7 @@ public class Predator extends Actor {
         for (Actor steve : animals)
         {
             if (steve == this)  continue;
+            if (ignoredAnimals.contains(steve))  continue;
             
             // Is Steve the nearest animal?
             double d = distance_to(steve);
@@ -575,7 +596,18 @@ public class Predator extends Actor {
                 give_birth();
             }
         }
-    }
+        
+        // Update the timers of ignored animals
+        for (int ii = 0; ii < ignoredAnimals.size(); ++ii)
+        {
+            ignoredTime.set(ii, ignoredTime.get(ii) + 1);
+            if (ignoredTime.get(ii) >= IGNORE_TIME)
+            {
+                ignoredAnimals.remove(ii);
+                ignoredTime.remove(ii);
+            }
+        }
+    }  // think()
     
     /**
      * Use some energy, and possibly die.
@@ -782,7 +814,14 @@ public class Predator extends Actor {
      */
     public void ignore(Actor target)
     {
+        // If we’re already ignoring this animal, do nothing
+        for (Actor a : ignoredAnimals)
+        {
+            if (a == target)  return;
+        }
         
+        ignoredAnimals.add(target);
+        ignoredTime.add(0);
     }
     
     /**
