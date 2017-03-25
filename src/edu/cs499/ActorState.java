@@ -456,7 +456,15 @@ public class ActorState {
             Predator p = evolve_a_predator(evolve_predator.get(i));
             if (p.is_alive())
             {
-                // TODO: reproduction
+                if (p.ready_to_give_birth())
+                {
+                    ArrayList<Predator> babies = p.give_birth();
+                    for (Predator bb : babies)
+                    {
+                        evolve_predator.add(bb);
+                    }
+                    babies = null;
+                }
             }
             else
             {

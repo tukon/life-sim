@@ -41,6 +41,9 @@ public class Predator extends Actor {
     /** Whether or not this predator has reproduced. */
     private boolean hadBabies;
     
+    /** The mate’s genes. Used when creating babies. */
+    private int matesGenotype;
+    
     /** Keeps track of how long this predator has been pregnant for. */
     private int gestationCounter;
     
@@ -591,10 +594,7 @@ public class Predator extends Actor {
         
         if (isPregnent)
         {
-            if (++gestationCounter > gestationPeriod)
-            {
-                give_birth();
-            }
+            ++gestationCounter;
         }
         
         // Update the timers of ignored animals
@@ -846,19 +846,104 @@ public class Predator extends Actor {
      */
     private void reproduce_with(Predator target)
     {
-        // TODO: implement reproduce
+        isPregnent = true;
+        needsMate = false;
+        gestationCounter = 0;
+        matesGenotype = target.get_genotype();
     }
     
     /**
      * Creates baby predators.
+     * @return The new baby predators, or null if not pregnent.
      */
-    private void give_birth()
+    public ArrayList<Predator> give_birth()
     {
+        if (!isPregnent)  return null;
+        
         isPregnent = false;
         needsMate = false;
         hadBabies = true;
         
-        // TODO: create babies
+        ThreadLocalRandom r = ThreadLocalRandom.current();
+        ArrayList<Predator> babies = new ArrayList<>();
+        
+        int totalBabies = r.nextInt(1, maxOffspring);
+        for (int ii = 0; ii < totalBabies; ++ii)
+        {
+            Predator p = new Predator(x_pos + r.nextInt(-5, 5),
+                y_pos + r.nextInt(-5, 5),
+                offspringEnergy,
+                energyOutputRate,
+                get_baby_genes(),
+                maxSprintTime,
+                maxSpeed,
+                energyToReproduce,
+                maxOffspring,
+                gestationPeriod,
+                offspringEnergy);
+            ignore(p);
+            babies.add(p);
+        }
+        
+        // Make the babies ignore each other
+        for (Predator current : babies)
+        {
+            for (Predator other : babies)
+            {
+                current.ignore(other);
+            }
+        }
+        
+        return babies;
+    }
+    
+    /**
+     * Randomly creates genes from this predator’s genes and its mate’s. If
+     * called before mating, this function’s behavior is undefined.
+     * @return Genotype for a new baby.
+     */
+    private int get_baby_genes()
+    {
+        ThreadLocalRandom r = ThreadLocalRandom.current();
+        int newGenotype = 0;
+        
+        /*
+         * Process:
+         *     1. Get a random boolean value.
+         *     2. If it is true, inherit from parent.
+         *     3. Otherwise, inherit from mate.
+         * This is done for each of the six genes.
+         */
+        
+        // AGR
+        if (r.nextBoolean())  newGenotype |= (genotype & Predator.AGR_1);
+        else  newGenotype |= (matesGenotype & Predator.AGR_1);
+        if (r.nextBoolean())  newGenotype |= (genotype & Predator.AGR_2);
+        else  newGenotype |= (matesGenotype & Predator.AGR_2);
+        
+        // STR
+        if (r.nextBoolean())  newGenotype |= (genotype & Predator.STR_1);
+        else  newGenotype |= (matesGenotype & Predator.STR_1);
+        if (r.nextBoolean())  newGenotype |= (genotype & Predator.STR_2);
+        else  newGenotype |= (matesGenotype & Predator.STR_2);
+        
+        // SPD
+        if (r.nextBoolean())  newGenotype |= (genotype & Predator.SPD_1);
+        else  newGenotype |= (matesGenotype & Predator.SPD_1);
+        if (r.nextBoolean())  newGenotype |= (genotype & Predator.SPD_2);
+        else  newGenotype |= (matesGenotype & Predator.SPD_2);
+        
+        return newGenotype;
+    }
+    
+    
+    /**
+     * Whether or not this predator is ready to give birth.
+     * @return If true, you should call give_birth().
+     */
+    public boolean ready_to_give_birth()
+    {
+        return (isPregnent && gestationCounter >= gestationPeriod);
     }
     
     /**
