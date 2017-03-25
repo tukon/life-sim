@@ -145,14 +145,21 @@ public class Predator extends Actor {
      */
     public static int parse_genotype(String genotype)
     {
-        // TODO: error handling for missing genes, duplicate genes, and
-        // unknown genes
+        // These are used to keep track of which genes have been set, so that we
+        // can complain if some are duplicated or missing
+        boolean setAgr = false;
+        boolean setStr = false;
+        boolean setSpd = false;
+        
         String[] parts = genotype.split(" ");
         int result = 0;
         for (String g : parts)
         {
             switch (g)
             {
+            case "aa":
+                result ^= (Predator.AGR_1 | Predator.AGR_2);
+                break;
             case "AA":
                 result |= (Predator.AGR_1 | Predator.AGR_2);
                 break;
@@ -163,6 +170,9 @@ public class Predator extends Actor {
                 result |= Predator.AGR_2;
                 break;
                 
+            case "ss":
+                result ^= (Predator.STR_1 | Predator.STR_2);
+                break;
             case "SS":
                 result |= (Predator.STR_1 | Predator.STR_2);
                 break;
@@ -173,6 +183,9 @@ public class Predator extends Actor {
                 result |= Predator.STR_2;
                 break;
                 
+            case "ff":
+                result ^= (Predator.SPD_1 | Predator.SPD_2);
+                break;
             case "FF":
                 result |= (Predator.SPD_1 | Predator.SPD_2);
                 break;
@@ -182,10 +195,64 @@ public class Predator extends Actor {
             case "fF":
                 result |= Predator.SPD_2;
                 break;
-            default:
-                // Don’t need to do anything for aa, ss, or ff because all of
-                // the bits are initialized to 0.
+            default:  // Unknown gene
+                // TODO: throw an exception?
+                System.out.println("Warning: invalid gene \"" + g +
+                    "\" given to this predator");
+                System.out.println("Gene string: \"" + genotype + "\"");
             }
+            
+            // Check for duplicates
+            switch (g)
+            {
+            case "aa":
+            case "Aa":
+            case "aA":
+            case "AA":
+                if (setAgr)
+                {
+                    System.out.println("Warning: multiple aggression values " +
+                        "given for this predator; using the latest one");
+                    System.out.println("Gene string: \"" + genotype + "\"");
+                }
+                else  setAgr = true;
+                break;
+                
+            case "ss":
+            case "Ss":
+            case "sS":
+            case "SS":
+                if (setStr)
+                {
+                    System.out.println("Warning: multiple strength values " +
+                        "given for this predator; using the latest one");
+                    System.out.println("Gene string: \"" + genotype + "\"");
+                }
+                else  setStr = true;
+                break;
+    
+            case "ff":
+            case "Ff":
+            case "fF":
+            case "FF":
+                if (setSpd)
+                {
+                    System.out.println("Warning: multiple speed values " +
+                        "given for this predator; using the latest one");
+                    System.out.println("Gene string: \"" + genotype + "\"");
+                }
+                else  setSpd = true;
+                break;
+            }
+        }
+        
+        // Warn if some genes were never set (they will be regressive, e.g. xx)
+        // TODO: exception?
+        if (!setAgr || !setStr || !setSpd)
+        {
+            System.out.println("Warning: This predator is missing one or more "+
+                "genes; they have been set to their regressive forms (xx)");
+            System.out.println("Gene string: \"" + genotype + "\"");
         }
         
         return result;
