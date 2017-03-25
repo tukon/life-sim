@@ -763,7 +763,11 @@ public class Predator extends Actor {
             
             if (chance == -1.0)  // special case: see winChance
             {
-                if (outcome < 0.5)  ignore(target);  // draw
+                if (outcome < 0.5)  // draw
+                {
+                    ignore(target);
+                    ((Predator)target).ignore(this);
+                }
                 else if (outcome < 0.75)  eat(target);  // win
                 else  die();  // lose
             }
@@ -814,6 +818,8 @@ public class Predator extends Actor {
      */
     public void ignore(Actor target)
     {
+        // Don’t ignore ourself
+        if (target == this)  return;
         // If we’re already ignoring this animal, do nothing
         for (Actor a : ignoredAnimals)
         {
