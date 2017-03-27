@@ -18,6 +18,7 @@
  *                last commit to gray out the start button because the timer
  *                can't be started again once stopped.)
  * 03-27-17  MPK  Swapped Shapes for GIFs for actors.
+ * 03-27-17  MPK  Added background_gameboard.
  *
  ******************************************************************************/
 package edu.cs499;
@@ -81,11 +82,13 @@ public class GUI_FXMLController implements Initializable {
     private String herbivore_imagePath = "file:www.GIFCreator.me_GkRicN.gif";
     private String predator_imagePath = "file:www.GIFCreator.me_5pxQjn.gif";
     private String rock_imagePath = "file:rock_finished.png";
+    private String background_imagePath = "file:background_gameboard.jpg";
     	        
     private Image plant_gif = new Image(plant_imagePath);
     private Image herbivore_gif = new Image(herbivore_imagePath);
     private Image predator_gif = new Image(predator_imagePath);
     private Image rock_gif = new Image(rock_imagePath);
+    private Image background_gif = new Image(background_imagePath);
     
     
     /**********************************************************************
@@ -169,6 +172,7 @@ public class GUI_FXMLController implements Initializable {
 
                     // clear the previous canvas state
                     gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+                    gc.drawImage(background_gif, 0, 0, canvas.getWidth(), canvas.getHeight()); 
 
                     //set the rocks
                     gc.setFill(Color.RED);
