@@ -17,6 +17,7 @@
  *                ended. (Adam changed the end button functionality in the 
  *                last commit to gray out the start button because the timer
  *                can't be started again once stopped.)
+ * 03-27-17  MPK  Swapped Shapes for GIFs for actors.
  *
  ******************************************************************************/
 package edu.cs499;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
+import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
@@ -34,6 +36,7 @@ import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
 public class GUI_FXMLController implements Initializable {
@@ -73,6 +76,17 @@ public class GUI_FXMLController implements Initializable {
     private List<Predator>  predator_list   = new ArrayList<>();
     
     private boolean retrieve_actor_states;
+    
+    private String plant_imagePath = "file:www.GIFCreator.me_sD9acf.gif";
+    private String herbivore_imagePath = "file:www.GIFCreator.me_GkRicN.gif";
+    private String predator_imagePath = "file:www.GIFCreator.me_5pxQjn.gif";
+    private String rock_imagePath = "file:rock_finished.png";
+    	        
+    private Image plant_gif = new Image(plant_imagePath);
+    private Image herbivore_gif = new Image(herbivore_imagePath);
+    private Image predator_gif = new Image(predator_imagePath);
+    private Image rock_gif = new Image(rock_imagePath);
+    
     
     /**********************************************************************
      *
@@ -162,7 +176,8 @@ public class GUI_FXMLController implements Initializable {
                     while (rock_list_iterator.hasNext()) 
                     {
                         Rock rock = rock_list_iterator.next();
-                        gc.fillOval(rock.get_x_pos(), rock.get_y_pos(), rock.get_diameter(), rock.get_diameter()); 
+                        //gc.fillOval(rock.get_x_pos(), rock.get_y_pos(), rock.get_diameter(), rock.get_diameter()); 
+                        gc.drawImage(rock_gif, rock.get_x_pos(), rock.get_y_pos(), rock.get_diameter()*3, rock.get_diameter()*3); 
                         //System.out.println("Rock: x" + rock.get_x_pos() + " y" + rock.get_y_pos() + " w" + rock.get_diameter() + " w" + rock.get_diameter());
                     }
 
@@ -172,7 +187,8 @@ public class GUI_FXMLController implements Initializable {
                     while (plant_life_list_iterator.hasNext()) 
                     {
                         PlantLife plant_life = plant_life_list_iterator.next();
-                        gc.fillOval(plant_life.get_x_pos(), plant_life.get_y_pos(), plant_life.get_diameter(), plant_life.get_diameter()); 
+                        //gc.fillOval(plant_life.get_x_pos(), plant_life.get_y_pos(), plant_life.get_diameter(), plant_life.get_diameter()); 
+                        gc.drawImage(plant_gif, plant_life.get_x_pos(), plant_life.get_y_pos(), plant_life.get_diameter(), plant_life.get_diameter()); 
                         //System.out.println("Plant: x" + plant_life.get_x_pos() + " y" + plant_life.get_y_pos() + " w" + plant_life.get_diameter() + " w" + plant_life.get_diameter());
                     }
 
@@ -181,7 +197,9 @@ public class GUI_FXMLController implements Initializable {
                     Iterator<Herbivore> herbivore_list_iterator = herbivore_list.iterator();
                     while (herbivore_list_iterator.hasNext()) {
                         Herbivore herbivore = herbivore_list_iterator.next();
-                        gc.fillRect(herbivore.get_x_pos(), herbivore.get_y_pos(), animal_width, animal_height); 
+                        //gc.fillRect(herbivore.get_x_pos(), herbivore.get_y_pos(), animal_width, animal_height); 
+                        // TODO find a more appropriate size for these
+                        gc.drawImage(herbivore_gif, herbivore.get_x_pos(), herbivore.get_y_pos(), animal_width*6, animal_height*6); 
                         //System.out.println("herbivore: x" + herbivore.get_x_pos() + " y" + herbivore.get_y_pos() + " w" + animal_width + " w" + animal_width);
                     }
 
@@ -190,7 +208,8 @@ public class GUI_FXMLController implements Initializable {
                     Iterator<Predator> predator_list_iterator = predator_list.iterator();
                     while (predator_list_iterator.hasNext()) {
                         Predator predator = predator_list_iterator.next();
-                        gc.fillRect(predator.get_x_pos(), predator.get_y_pos(), animal_width+5, animal_height+5); 
+                        //gc.fillRect(predator.get_x_pos(), predator.get_y_pos(), animal_width+5, animal_height+5); 
+                        gc.drawImage(predator_gif, predator.get_x_pos(), predator.get_y_pos(), (animal_width+5)*2, (animal_height+5)*2); 
                         //System.out.println("predator: x" + predator.get_x_pos() + " y" + predator.get_y_pos() + " w" + animal_width + " w" + animal_width);
                     }
 
