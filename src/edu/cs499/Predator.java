@@ -788,6 +788,8 @@ public class Predator extends Actor {
             }
             return;
         }
+        
+        int leftover = 0;
         // Make dx,dy a vector pointing towards the target
         double dx = x - x_pos;
         double dy = y - y_pos;
@@ -796,6 +798,7 @@ public class Predator extends Actor {
         double dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
         if (dist < currentSpeed)
         {
+            leftover = (int)currentSpeed - (int)dist;
             x_pos = x;
             y_pos = y;
         }
@@ -811,7 +814,9 @@ public class Predator extends Actor {
             y_pos += dy;
         }
         
-        spendEnergy((int)(currentSpeed * energyOutputRate));
+        int moved = (int)currentSpeed - leftover;
+            
+        this.spendEnergy(moved*(int)this.energyOutputRate);
         
         ++sprintTime;
         if (sprintTime > maxSprintTime)

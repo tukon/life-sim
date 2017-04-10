@@ -12,6 +12,7 @@
  * REVISION HISTORY:
  * 01-26-17  MPK  New.
  * 02-08-17  MPK  Finished implementing the base statistics.
+ * 03-08-17  AJP  Finished implementing basic logic and movement.
  *
  ******************************************************************************/
 package edu.cs499;
@@ -33,8 +34,10 @@ public class Herbivore extends Actor {
     private int maxEnergyTime = 60;
     private int energyTimer;
     private PlantLife eatingPlant;
+    private Predator fleeingFrom;
     private boolean alive = true;
     private boolean reproduced = false;
+    private boolean fleeing = false;
 
     
     /**********************************************************************
@@ -113,6 +116,89 @@ public class Herbivore extends Actor {
         this.eatingPlant = null;
     }
     
+    public void think(List<PlantLife> plants, List<Predator> predators, List<Rock> rocks,
+        List<Herbivore> herbivores, int worldWidth, int worldHeight) 
+    {
+        checkSurroundings(predators, rocks);
+                
+        if (!fleeing) {
+            // If currently eating, continue 
+            if (isEating()) 
+            {
+                eat();
+            }
+            else {
+                moveToFood(plants, rocks, herbivores);
+            }
+        }
+        else 
+        {
+            flee(worldWidth, worldHeight);
+        }
+    }
+    
+    public void checkSurroundings(List<Predator> predators, List<Rock> rocks) 
+    {    
+        Actor closest = getClosestActor(predators, rocks);
+        
+        if (closest != null) {
+            fleeing = true;
+            stopEating();
+            fleeingFrom = (Predator)closest;
+        }
+        else 
+        {
+            fleeing = false;
+            fleeingFrom = null;
+        }
+    }
+    
+    public void flee(int worldWidth, int worldHeight) 
+    {
+        double moveRange = getMoveRange();
+        
+        int x = fleeingFrom.x_pos;
+        int y = fleeingFrom.y_pos;
+        
+        // Make dx,dy a vector pointing away from the target
+        double dx = (x - x_pos)*-1;
+        double dy = (y - y_pos)*-1;
+
+        // Make it a unit vector
+        double dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        
+        dx /= dist;
+        dy /= dist;
+
+        dx *= (int)moveRange;
+        dy *= (int)moveRange;
+        
+        if (dx <= 0) 
+        {
+            x_pos = 0;
+        }
+        else if (dx >= worldWidth) 
+        {
+            x_pos = worldWidth;
+        }
+        else {
+            x_pos += dx;
+        }
+             
+        if (dy <= 0)
+        {
+            y_pos = 0;
+        }
+        else if (dy >= worldHeight)
+        {
+            y_pos = worldHeight;
+        }
+        else 
+        {
+            y_pos += dy;
+        }     
+    }
+    
     public void eat() 
     {
         this.eatingTimer--;
@@ -142,76 +228,53 @@ public class Herbivore extends Actor {
         }
     }
     
-    public void moveToFood(List<PlantLife> plants, List<Rock> rocks, List<Herbivore> herbivores) 
-    {
-        double moveRange = this.maxSpeed;
-        
-        // No visible plants, so move in some direction
+    double getMoveRange() {
+        double moveRange = maxSpeed;
         // If energy is less than 25, we can only move 10 DU
         if (this.energy < 25) {
             moveRange = 10;
         }
         
+        return moveRange;
+    }
+    
+    public void moveToFood(List<PlantLife> plants, List<Rock> rocks, List<Herbivore> herbivores) 
+    {
+        double moveRange = getMoveRange();
+        
         // if we have a chosen plant to eat, continue moving toward it
         if (this.eatingPlant != null) {
-            // coult make this random, but for now move along x and then y
-            int diffX = this.eatingPlant.get_x_pos() - this.get_x_pos();
             int leftover = 0;
             
-            if (diffX != 0) {
-                if (diffX < 0) {
-                    diffX = diffX * -1;
-                    
-                    if ((int)moveRange > diffX) {
-                        leftover = (int)moveRange - diffX;
-                        this.set_x_pos(this.get_x_pos() - diffX);
-                    }
-                    else {
-                        this.set_x_pos(this.get_x_pos() - (int)moveRange);
-                    }
-                }
-                else {
-                    if ((int)moveRange > diffX) {
-                        leftover = (int)moveRange - diffX;
-                        this.set_x_pos(this.get_x_pos() + diffX);
-                    }
-                    else {
-                        this.set_x_pos(this.get_x_pos() + (int)moveRange);
-                    }
-                }     
-            }  
-            else {
-                leftover = (int)moveRange;
+            int x = this.eatingPlant.x_pos;
+            int y = this.eatingPlant.y_pos;
+            // Make dx,dy a vector pointing towards the target
+            double dx = x - x_pos;
+            double dy = y - y_pos;
+
+            // Make it a unit vector
+            double dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+            if (dist < (int)moveRange)
+            {
+                leftover = (int)moveRange - (int)dist;
+                x_pos = x;
+                y_pos = y;
+            }
+            else
+            {
+                dx /= dist;
+                dy /= dist;
+
+                dx *= (int)moveRange;
+                dy *= (int)moveRange;
+
+                x_pos += dx;
+                y_pos += dy;
             }
             
-            if (leftover > 0) {
-                int diffY = this.eatingPlant.get_y_pos() - this.get_y_pos();
-                
-                if (diffY < 0) {
-                    diffY = diffY * -1;
-                    
-                    if (leftover > diffY) {
-                        this.set_y_pos(this.get_y_pos() - diffY);
-                        leftover -= diffY;
-                    }
-                    else {
-                        this.set_y_pos(this.get_y_pos() - (int)moveRange);
-                        leftover = 0;
-                    }
-                }
-                else {
-                    if ((int)leftover > diffY) {
-                        this.set_y_pos(this.get_y_pos() + diffY);
-                        leftover -= diffY;
-                    }
-                    else {
-                        this.set_y_pos(this.get_y_pos() + (int)moveRange);
-                        leftover = 0;
-                    }
-                }
-            }
+            int moved = (int)moveRange - leftover;
             
-            this.spendEnergy((int)moveRange - leftover);
+            this.spendEnergy((moved/5)*this.outputRate);
             
             if (this.get_x_pos() == this.eatingPlant.get_x_pos() && this.get_y_pos() == this.eatingPlant.get_y_pos()) {
                 boolean spotOpen = false;
@@ -248,45 +311,22 @@ public class Herbivore extends Actor {
             }
             return;
         }
-        
-        // Get list of plants that are in movement range
-        List<PlantLife> inRange = this.plantsInRange(plants);
-        Random rn = new Random();
-        
-        if (inRange.size() > 0) {
-            // Filter out plants that are not visible due to rocks
-            List<PlantLife> visible = this.visiblePlants(inRange, rocks);
-            
-            if (visible.size() > 0) {
-                // We have visible plants, so move toward one
-                int minDistance = 1000;
-                int minIndex = 0;
-                int index = 0;
-                
-                while (index < visible.size()) {
-                    int diffx = this.get_x_pos() - visible.get(index).get_x_pos();
-                    int diffy = this.get_y_pos() - visible.get(index).get_y_pos();
-                    int distance = Math.abs(diffx) + Math.abs(diffy);
-                    
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        minIndex = index;
-                    }
-                    
-                    index++;
-                }
-                
-                this.eatingPlant = visible.get(minIndex);
-                this.moveToFood(plants, rocks, herbivores);
-            }
+
+        Actor closest = getClosestActor(plants, rocks);
+
+        if (closest != null) {
+            this.eatingPlant = (PlantLife)closest;
+            this.moveToFood(plants, rocks, herbivores);
+            return;
         }
         
+        Random rn = new Random();
         // Select a random x between 1 and max speed
         int x = rn.nextInt((int)moveRange) + 1;
         int y = (int)moveRange - x;
         
-        int dirX = rn.nextInt(1);
-        if (dirX == 0) {
+        double dirX = rn.nextInt();
+        if (dirX < 0.5) {
             // If 0, move to the left
             this.set_x_pos(this.get_x_pos() - x);
         }
@@ -294,8 +334,8 @@ public class Herbivore extends Actor {
             this.set_x_pos(this.get_x_pos() + x);
         }
         
-        int dirY = rn.nextInt(1);
-        if (dirY == 0) {
+        double dirY = rn.nextInt();
+        if (dirY < 0.5) {
             this.set_y_pos(this.get_y_pos() - y);
         }
         else {
@@ -304,6 +344,40 @@ public class Herbivore extends Actor {
         
         // For every 5 DU used, lose energy at the output rate
         this.spendEnergy(this.outputRate * ((int)moveRange/5));
+    }
+    
+    private Actor getClosestActor(List<? extends Actor> actors, List<Rock> rocks) 
+    {
+        List<Actor> inRange = actorsInRange(actors);
+        
+        if (inRange.size() > 0) 
+        {
+            List<Actor> visible = visibleActors(inRange, rocks);
+            
+            if (visible.size() > 0) 
+            {
+                int minDistance = 1000;
+                int minIndex = 0;
+                int index = 0;
+
+                while (index < actors.size()) {
+                    int diffx = this.get_x_pos() - actors.get(index).get_x_pos();
+                    int diffy = this.get_y_pos() - actors.get(index).get_y_pos();
+                    int distance = Math.abs(diffx) + Math.abs(diffy);
+
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        minIndex = index;
+                    }
+
+                    index++;
+                }
+
+                return actors.get(minIndex);
+            }
+        }
+        
+        return null;
     }
     
     private void spendEnergy(int amount) {
@@ -323,8 +397,8 @@ public class Herbivore extends Actor {
         return this.alive;
     }
     
-    private List<PlantLife> plantsInRange(List<PlantLife> plants) {
-        List<PlantLife> inRange = new ArrayList<>();
+    private List<Actor> actorsInRange(List<? extends Actor> actors) {
+        List<Actor> inRange = new ArrayList<>();
         
         int minX = this.x_pos - 150;
         int maxX = this.x_pos + 150;
@@ -338,33 +412,24 @@ public class Herbivore extends Actor {
             minY = 0;
         }
         
-        // Loook at all plants and determine which are in range for movement
-        for(PlantLife plant : plants)
+        // Loook at all actors and determine which are in range for movement
+        for(Actor actor : actors)
         {
-            /*double plantMinX = plant.get_x_pos() - plant.get_diameter()/2;
-            double plantMaxX = plant.get_x_pos() + plant.get_diameter()/2;
-            double plantMinY = plant.get_y_pos() - plant.get_diameter()/2;
-            double plantMaxY = plant.get_y_pos() + plant.get_diameter()/2;
-            
-            if ((plantMinX >= minX && plantMaxX <= maxX) &&
-                (plantMinY >= minY && plantMaxY <= maxY)) {
-                inRange.add(plant);
-            }*/
-            // For now, just look at the plants center
-            if ((plant.get_x_pos() >= minX && plant.get_x_pos() <= maxX) &&
-                (plant.get_y_pos() >= minY && plant.get_y_pos() <= maxY)) {
-                inRange.add(plant);
+            // For now, just look at the actors center
+            if ((actor.get_x_pos() >= minX && actor.get_x_pos() <= maxX) &&
+                (actor.get_y_pos() >= minY && actor.get_y_pos() <= maxY)) {
+                inRange.add(actor);
             }
         }
         
         return inRange;
     }
     
-    private List<PlantLife> visiblePlants(List<PlantLife> plants, List<Rock> rocks) 
+    private List<Actor> visibleActors(List<Actor> actors, List<Rock> rocks) 
     {
-        List<PlantLife> visible = new ArrayList<>();
+        List<Actor> visible = new ArrayList<>();
         
-        for (PlantLife plant : plants) {  
+        for (Actor actor : actors) {  
             boolean isVisible = true;
             boolean right = false;
             boolean up = false;
@@ -374,17 +439,17 @@ public class Herbivore extends Actor {
             int x = this.get_x_pos();
             int y = this.get_y_pos();
             
-            if (plant.get_x_pos() > x) {
+            if (actor.get_x_pos() > x) {
                 right = true;
             }
-            else if (plant.get_x_pos() == x) {
+            else if (actor.get_x_pos() == x) {
                 xEqual = true;
             }
            
-            if (plant.get_y_pos() < y) {
+            if (actor.get_y_pos() < y) {
                 up = true;
             }
-            else if (plant.get_y_pos() == y) {
+            else if (actor.get_y_pos() == y) {
                 yEqual = true;
             }
             
@@ -403,7 +468,7 @@ public class Herbivore extends Actor {
                         y--;
                 }
                 
-                if (x != plant.get_x_pos() && y != plant.get_y_pos()) {
+                if (x != actor.get_x_pos() && y != actor.get_y_pos()) {
                     for (Rock rock : rocks) {
                         if (rock.get_x_pos() == x && rock.get_y_pos() == y) {
                             // Rock is in between herbivore and plant
@@ -417,7 +482,7 @@ public class Herbivore extends Actor {
             }
             
             if (isVisible) {
-                visible.add(plant);
+                visible.add(actor);
             }
         }
         

@@ -587,14 +587,8 @@ public class ActorState {
     private Herbivore evolve_a_herbivore(Herbivore h)
     {
         if (h.isAlive()) {
-            // If currently eating, continue 
-            if (h.isEating()) 
-            {
-                h.eat();
-            }
-            else {
-                h.moveToFood(plant_life_list, rock_list, herbivore_list);
-            }
+            h.think(plant_life_list, predator_list, rock_list, herbivore_list, (int)w_grid_width,
+            (int)w_grid_height);
         }    
     
         // return herbivore data once it's done being manipulated.
