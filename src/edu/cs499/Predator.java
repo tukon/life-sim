@@ -13,6 +13,7 @@
  * 01-26-17  MPK  New.
  * 02-08-17  MPK  Finished implementing the base statistics.
  * 03-10-17  AGA  Finished implementing basic logic and movement.
+ * 04-12-17  AGA  Implemented proper line-of-sight checking.
  *
  ******************************************************************************/
 package edu.cs499;
@@ -117,6 +118,16 @@ public class Predator extends Actor {
      * How long to ignore others for, in seconds.
      */
     private static final int IGNORE_TIME = 60 * 60;  // one hour
+    
+    /**
+     * How tall predators are.
+     * TODO: this is not mentioned in the documentation, or the data file (which
+     * is why it is hardcoded.) It matters because the documentation says that
+     * rocks are domes, not circles. They have a diameter and a height. They
+     * appear to be between 10 and 20 units high, so I’m making predators 12
+     * units tall.
+     */
+    private static final int HEIGHT = 12;
     
     /**
      * Gets the probability of a predator killing another predator based on
@@ -445,6 +456,16 @@ public class Predator extends Actor {
     }
     
     /**
+     * Gets the hight of this predator.
+     * @return This predator’s height.
+     * @see HEIGHT
+     */
+    public int get_height()
+    {
+        return HEIGHT;
+    }
+    
+    /**
      * Gets the genotype of the predator.
      * @return A bitmask of gene values.
      */
@@ -627,7 +648,7 @@ public class Predator extends Actor {
      * @param obstacles A list of all of the rocks (some might be obscuring the
      *     predator’s view of the target.)
      */
-    private boolean visible(Actor target, List<Rock> obstacles)
+    public boolean visible(Actor target, List<Rock> obstacles)
     {
         double dist = distance_to(target);
         if (target == this || dist > MAX_VISIBILITY_DISTANCE)
@@ -642,7 +663,108 @@ public class Predator extends Actor {
         }
         else
         {
-            return true;  // TODO: proper line-of-sight checking
+            for (Rock rock : obstacles)
+            {
+                if (intersects_rock(new Point(x_pos, y_pos),
+                    new Point(target.get_x_pos(), target.get_y_pos()),
+                    get_height(),
+                    new Point(rock.get_x_pos(), rock.get_y_pos()),
+                    rock.get_diameter()/2.0,
+                    rock.get_height()))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+    
+    /**
+     * Determines whether or not the given line segment intersects the given
+     * rock.
+     * @param lp1 Line point 1.
+     * @param lp2 Line point 2.
+     * @param height How high the line is (the z component of the two points).
+     * @param rockPos Position of the sphere. It is assumed that z=0
+     * @param rockRad Radius of the rock.
+     * @param rockHeight Height of the rock.
+     * @return True if the line intersects the rock, or is completely inside
+     *     it; false if the two do not intersect.
+     */
+    private boolean intersects_rock(Point lp1, Point lp2, double height,
+        Point rockPos, double rockRad, double rockHeight)
+    {
+        // I hope your editor properly supports UTF-8 because I used a lot of
+        // math symbols in the comments here.
+        
+        // If the line is above or below the sphere, they cannot intersect.
+        if (height > rockHeight || height < -rockHeight)
+        {
+            return false;
+        }
+        
+        // We need to get a 2D “slice” of the rock at the given height. It’s
+        // position (2D) will be the same as the given position, but its radius
+        // will be smaller (unless height == 0). The new radius will be computed
+        // using the Pythagorean theorem, on a right triangle:
+        //             newRad
+        //            _______
+        //            |     /
+        //            |    /
+        //     height |   /
+        //            |  / hyp
+        //            | /
+        //            |/
+        //     newRad² + height² = hyp²
+        //     newRad² = hyp² - height²
+        //     newRad = √(hyp² - height²)
+        // hyp would be the radius, if this were a sphere -- but it isn’t. hyp
+        // is somewhere between rockRad and rockHeight. In fact, hyp is
+        // proportional to height: when height = 0, hyp = newRad = rockRad;
+        // when height = rockHeight, hyp = rockHeight and newRad = 0. Thus, we
+        // can use tt = height/rockHeight as the value for interpolating between
+        // rockHeight and rockRad to get hyp.
+        double tt = height / rockHeight;
+        double hyp = tt * rockHeight + (1.0 - tt) * rockRad;
+        double newRad = Math.sqrt(Math.pow(hyp, 2) - Math.pow(height, 2));
+        
+        // The following is derived from http://stackoverflow.com/a/1084899
+        
+        // Using double[] instead of Point because Point uses integers
+        
+        // Direction of the line:
+        double[] dir = {lp2.x - lp1.x, lp2.y - lp1.y};
+        // Sphere center → line start:
+        double[] s2l = {lp1.x - rockPos.x, lp2.y - rockPos.y};
+        
+        // a = dir • dir
+        double a = dir[0] * dir[0] + dir[1] * dir[1];
+        // b = 2 × (s2l • dir)
+        double b = 2 * (s2l[0] * dir[0] + s2l[1] * dir[1]);
+        // c = s2l • s2l - newRad²
+        double c = s2l[0] * s2l[0] + s2l[1] * s2l[1] - Math.pow(newRad, 2);
+        
+        double discriminant = Math.pow(b, 2) - 4 * a * c;
+        if (discriminant < 0.0)
+        {
+            return false;
+        }
+        
+        discriminant = Math.sqrt(discriminant);
+        
+        // One of these may be the intersection point
+        double t1 = (-b - discriminant) / (2 * a);
+        double t2 = (-b + discriminant) / (2 * a);
+        
+        if ((t1 >= 0.0 && t1 <= 1.0) ||  // -O->, -(-> )
+            (t2 >= 0.0 && t2 <= 1.0) ||  // (  -)->
+            (t1 < 0.0 && t2 >= 1.0))     // (-->)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
     
@@ -688,7 +810,6 @@ public class Predator extends Actor {
             x_pos += dx;
             y_pos += dy;
         }
-        // TODO: collision checking (do not move into rocks)
         
         spendEnergy((int)(currentSpeed * energyOutputRate));
         
