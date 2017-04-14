@@ -519,10 +519,15 @@ public class Predator extends Actor {
     /**
      * Finds the nearest animal (excluding self).
      * @param animals A list of all animals. It should not be empty.
-     * @return The closest animal from the list.
+     * @return The closest animal from the list, or null if animals is empty.
      */
     private Actor nearest(List<? extends Actor> animals)
     {
+        if (animals == null || animals.isEmpty())
+        {
+            return null;
+        }
+        
         Actor nearest = animals.get(0);
         double dist = distance_to(nearest);
         for (Actor steve : animals)
@@ -561,20 +566,21 @@ public class Predator extends Actor {
         }
         
         // Find the nearest animal
-        Herbivore nearestHerbivore = (Herbivore)nearest(herbivores);
-        Predator nearestPredator = (Predator)nearest(predators);
+        Actor nearestHerbivore = nearest(herbivores);
+        Actor nearestPredator = nearest(predators);
         Actor nearest = null;
-        if (distance_to(nearestPredator) < distance_to(nearestHerbivore))
+        if (nearestHerbivore == null || (nearestPredator != null &&
+            distance_to(nearestPredator) < distance_to(nearestHerbivore)))
         {
             nearest = nearestPredator;
         }
-        else
+        else if (nearestHerbivore != null)
         {
             nearest = nearestHerbivore;
         }
         
         // Main logic:
-        if (!visible(nearest, rocks))  // all alone…
+        if (nearest == null || !visible(nearest, rocks))  // all alone…
         {
             wander(worldWidth, worldHeight);
         }
@@ -586,7 +592,7 @@ public class Predator extends Actor {
         {
             if (needsMate)
             {
-                mate(nearestPredator);
+                mate((Predator)nearest);
             }
             else
             {
@@ -598,7 +604,8 @@ public class Predator extends Actor {
                 case AGR_1:  // Aa or aA: ignore it
                 case AGR_2:
                     // find nearest prey
-                    if (visible(nearestHerbivore, rocks))
+                    if (nearestHerbivore != null && 
+                        visible(nearestHerbivore, rocks))
                     {
                         hunt(nearestHerbivore);
                     }
@@ -608,7 +615,7 @@ public class Predator extends Actor {
                     }
                     break;
                 default:  // aa: flee
-                    flee(nearestPredator);
+                    flee((Predator)nearest);
                 }
             }
         }
