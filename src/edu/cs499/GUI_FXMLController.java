@@ -19,6 +19,7 @@
  *                can't be started again once stopped.)
  * 03-27-17  MPK  Swapped Shapes for GIFs for actors.
  * 03-27-17  MPK  Added background_gameboard.
+ * 04-13-17  MPK  Changed plant GIF to a still PNG.
  *
  ******************************************************************************/
 package edu.cs499;
@@ -78,7 +79,7 @@ public class GUI_FXMLController implements Initializable {
     
     private boolean retrieve_actor_states;
     
-    private String plant_imagePath = "file:www.GIFCreator.me_sD9acf.gif";
+    private String plant_imagePath = "file:adultplant_finish.png";
     private String herbivore_imagePath = "file:www.GIFCreator.me_GkRicN.gif";
     private String predator_imagePath = "file:www.GIFCreator.me_5pxQjn.gif";
     private String rock_imagePath = "file:rock_finished.png";
