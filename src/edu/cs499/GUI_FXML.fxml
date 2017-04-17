@@ -17,14 +17,14 @@
       <Button fx:id="StartButton" layoutX="1113.0" layoutY="85.0" mnemonicParsing="false" onAction="#start_button_event" prefHeight="25.0" prefWidth="57.0" text="Start" />
       <Button fx:id="PauseButton" layoutX="1113.0" layoutY="117.0" mnemonicParsing="false" onAction="#pause_button_event" text="Pause" />
       <Button fx:id="EndButton" layoutX="1112.0" layoutY="150.0" mnemonicParsing="false" onAction="#end_button_event" prefHeight="25.0" prefWidth="57.0" text="End" />
-      <Button fx:id="GenReportButton" layoutX="1041.0" layoutY="745.0" mnemonicParsing="false" onAction="#gen_report_button_event" text="Generate Report" />
+      <Button fx:id="GenReportButton" layoutX="1041.0" layoutY="399.0" mnemonicParsing="false" onAction="#gen_report_button_event" text="Generate Report" />
       <Button fx:id="SpeedButton_50" layoutX="1112.0" layoutY="285.0" mnemonicParsing="false" onAction="#speed_50x_button_event" prefHeight="25.0" prefWidth="57.0" text="50x" />
       <Button fx:id="SpeedButton_10" layoutX="1112.0" layoutY="253.0" mnemonicParsing="false" onAction="#speed_10x_button_event" prefHeight="25.0" prefWidth="57.0" text="10x" />
       <Button fx:id="SpeedButton_1" layoutX="1112.0" layoutY="221.0" mnemonicParsing="false" onAction="#speed_1x_button_event" prefHeight="25.0" prefWidth="57.0" text="1x" />
       <Button fx:id="SpeedButton_100" layoutX="1112.0" layoutY="316.0" mnemonicParsing="false" onAction="#speed_100x_button_event" prefHeight="25.0" prefWidth="57.0" text="100x" />
       <Label layoutX="1113.0" layoutY="64.0" text="Controls" />
       <Label layoutX="1121.0" layoutY="198.0" text="Speed" />
-      <TextField fx:id="FilenameInput" layoutX="1041.0" layoutY="713.0" prefHeight="25.0" prefWidth="127.0" text="Filename" />
+      <TextField fx:id="FilenameInput" layoutX="1041.0" layoutY="367.0" prefHeight="25.0" prefWidth="127.0" text="Filename" />
       <Canvas fx:id="canvas" height="750.0" layoutX="20.0" layoutY="20.0" width="1000.0" />
       <TextField fx:id="TimeTextField" editable="false" layoutX="1113.0" layoutY="20.0" prefHeight="25.0" prefWidth="55.0" />
    </children>
