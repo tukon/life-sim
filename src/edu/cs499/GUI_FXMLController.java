@@ -24,6 +24,7 @@
  ******************************************************************************/
 package edu.cs499;
 
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -376,8 +377,15 @@ public class GUI_FXMLController implements Initializable {
     @FXML
     private void gen_report_button_event(ActionEvent event) 
     {
-        sim_interface.output_sim_statistics(FilenameInput.getText());
-
+      rock_list       = sim_interface.get_rock_list();  
+      DataOutput g = new DataOutput();
+      g.Open_File();//need to specify the file to open
+      g.Add_Records(rock_list);//pass in the data from the actor classes
+      g.Close_File();//closes the file
     } // End gen_report_button_event()
+
+    
+
+
     
 }
