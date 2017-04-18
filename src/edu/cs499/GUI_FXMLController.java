@@ -24,6 +24,7 @@
  ******************************************************************************/
 package edu.cs499;
 
+import java.io.DataOutput;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
@@ -91,6 +92,8 @@ public class GUI_FXMLController implements Initializable {
     private Image predator_gif = new Image(predator_imagePath);
     private Image rock_gif = new Image(rock_imagePath);
     private Image background_gif = new Image(background_imagePath);
+    
+    private Data_Out data_out = new Data_Out();
     
     
     /**********************************************************************
@@ -377,11 +380,9 @@ public class GUI_FXMLController implements Initializable {
     @FXML
     private void gen_report_button_event(ActionEvent event) 
     {
-      rock_list       = sim_interface.get_rock_list();  
-      DataOutput g = new DataOutput();
-      g.Open_File();//need to specify the file to open
-      g.Add_Records(rock_list);//pass in the data from the actor classes
-      g.Close_File();//closes the file
+        data_out.populate(sim_interface.get_rock_list(), sim_interface.get_plant_life_list(), sim_interface.get_herbivore_list(), sim_interface.get_predator_list());
+        data_out.print_info(FilenameInput.getText());
+   
     } // End gen_report_button_event()
 
     
