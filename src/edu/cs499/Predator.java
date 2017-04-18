@@ -14,6 +14,7 @@
  * 02-08-17  MPK  Finished implementing the base statistics.
  * 03-10-17  AGA  Finished implementing basic logic and movement.
  * 04-12-17  AGA  Implemented proper line-of-sight checking.
+ * 04-17-17  MPK  Changed some equality checks for predator.
  *
  ******************************************************************************/
 package edu.cs499;
@@ -789,7 +790,7 @@ public class Predator extends Actor {
             // TODO: not sure what to do here. For now, we rest for half the
             // time we ran
             sprintTime -= 2;
-            if (sprintTime == 0)
+            if (sprintTime <= 0)
             {
                 currentSpeed = maxSpeed;
             }
@@ -853,7 +854,7 @@ public class Predator extends Actor {
     private void wander(int width, int height)
     {
         if (wanderTarget == null ||
-            distance_to(wanderTarget.x, wanderTarget.y) < TOUCHING_DISTANCE)
+            distance_to(wanderTarget.x, wanderTarget.y) <= TOUCHING_DISTANCE)
         {
             if (wanderTarget == null)
             {

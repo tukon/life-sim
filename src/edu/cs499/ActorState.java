@@ -22,6 +22,8 @@
  * 03-03-17  MPK  Added functionality for the growth of the plant life.
  *                No functionality yet implemented for the plant life being 
  *                eaten by the herbivore.
+ * 04-17-17  MPK  Changed the XML filename
+ *                Added a check for seeds being thrown outside of the bounds.
  *
  ******************************************************************************/
 package edu.cs499;
@@ -37,7 +39,7 @@ import java.util.logging.Logger;
 public class ActorState {
     
     // place where datafile is kept.
-    public static String DATAFILE = new String(System.getProperty("user.dir") + "/LifeSimulation01.xml");
+    public static String DATAFILE = new String(System.getProperty("user.dir") + "/LifeSimulation03.xml");
     
     // Create lists to store actors
     private List<Rock>      rock_list       = new ArrayList<>();
@@ -702,20 +704,25 @@ public class ActorState {
             // get random index out of the possible indices
             int random_coord_index = rand.nextInt(possible_seed_coords.size());
             
-            // if the coordinate already contains someone, discard this index
-            // and add another x to the loop so we still get the appropiate
-            // amount of germinated seeds cast.
-            if (current_coords.contains(possible_seed_coords.get(random_coord_index)))
+            // make sure coordinates aren't outside of world map
+            if (!(possible_seed_coords.get(random_coord_index)[0] < 0 || possible_seed_coords.get(random_coord_index)[0] > w_grid_width || 
+                  possible_seed_coords.get(random_coord_index)[1]< 0 || possible_seed_coords.get(random_coord_index)[1] > w_grid_height))
             {
-                possible_seed_coords.remove(random_coord_index);
-                x--;
-            }
-            else
-            {
-                // add those coordinates, with the index, to the seed_coords list
-                seed_coords.add(possible_seed_coords.get(random_coord_index));
-                // remove the index added from the list of possible seed locations.
-                possible_seed_coords.remove(random_coord_index);
+                // if the coordinate already contains someone, discard this index
+                // and add another x to the loop so we still get the appropiate
+                // amount of germinated seeds cast.
+                if (current_coords.contains(possible_seed_coords.get(random_coord_index)))
+                {
+                    possible_seed_coords.remove(random_coord_index);
+                    x--;
+                }
+                else
+                {
+                    // add those coordinates, with the index, to the seed_coords list
+                    seed_coords.add(possible_seed_coords.get(random_coord_index));
+                    // remove the index added from the list of possible seed locations.
+                    possible_seed_coords.remove(random_coord_index);
+                }
             }
         }
         
