@@ -21,6 +21,8 @@
  * 03-27-17  MPK  Added background_gameboard.
  * 04-13-17  MPK  Changed plant GIF to a still PNG.
  * 04-19-17  AGA  Moved images into the .jar file; removed unused imports.
+ * 04-19-17  MPK  Added a exit simulation button so that we could remove the 
+ *                menu bar, and so the simulation can close properly.
  *
  ******************************************************************************/
 package edu.cs499;
@@ -32,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -46,6 +49,8 @@ public class GUI_FXMLController implements Initializable {
 
     // The GUI objects that must be manually inserted here
     // so that the code can use them.
+    @FXML
+    private Button ExitButton;
     @FXML
     private Button StartButton;
     @FXML
@@ -98,7 +103,6 @@ public class GUI_FXMLController implements Initializable {
     private Image background_gif = new Image(bgLoader);
     
     private Data_Out data_out = new Data_Out();
-    
     
     /**********************************************************************
      *
@@ -239,6 +243,30 @@ public class GUI_FXMLController implements Initializable {
             }
         }.start();
     }    
+    
+    /**********************************************************************
+     *
+     * FUNCTION: exit_button_event()
+     *
+     * DESCRIPTION: Exits the simulation by responding to the button event
+     * 
+     *********************************************************************/
+    @FXML
+    private void exit_button_event(ActionEvent event) 
+    {
+        sim_interface.end_sim();
+        StartButton.setDisable(true);
+        PauseButton.setDisable(true);
+        EndButton.setDisable(true);
+        SpeedButton_1.setDisable(true);
+        SpeedButton_10.setDisable(true);
+        SpeedButton_50.setDisable(true);
+        SpeedButton_100.setDisable(true);
+        retrieve_actor_states = false;
+        
+        Platform.exit();
+        
+    } // End exit_button_event()
     
     /**********************************************************************
      *

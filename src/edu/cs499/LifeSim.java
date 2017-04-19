@@ -15,6 +15,7 @@
  *                Also added a LifeSim_Create function to call so that it is
  *                clear that the GUI is being created elsewhere.
  * 02-27-17  MPK  Added the FXML based GUI, so the code was changed to start it.
+ * 04-19-17  MPK  removed the menu bar from the application
  *
  ******************************************************************************/
 package edu.cs499;
@@ -24,6 +25,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 /**
  * The main application class.
  * @author adam
@@ -61,6 +63,7 @@ public class LifeSim extends Application {
         
             Scene scene = new Scene(root);
         
+            stage.initStyle(StageStyle.UNDECORATED);
             stage.setTitle( "Life Simulation" );
             stage.setScene(scene);
             stage.show();
