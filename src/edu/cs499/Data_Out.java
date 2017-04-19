@@ -107,15 +107,16 @@ public class Data_Out {
                     Rock rock = rock_list_iterator.next();
                     writer.println("Rock - x_pos:" + Integer.toString(rock.get_x_pos()) + "  \ty_pos:"+ Integer.toString(rock.get_y_pos()) + "  \tdiameter:"+ Integer.toString(rock.get_diameter()) + "\theight:" +Integer.toString(rock.get_height()));
                 }
-/*
+
                 // TODO
                 // write the plant life to the file
                 Iterator<PlantLife> plant_life_list_iterator = plant_life_list.iterator();
                 while (plant_life_list_iterator.hasNext()) 
                 {
                     PlantLife plant_life = plant_life_list_iterator.next();
+                    writer.println("Plant - x_pos:" + Integer.toString(plant_life.get_x_pos()) + " \ty_pos:"+ Integer.toString(plant_life.get_y_pos()) + "\tdiameter" + Integer.toString((int) plant_life.get_diameter()) + "\theight:" + Integer.toString((int) plant_life.get_height()));
                     //gc.fillOval(plant_life.get_x_pos(), plant_life.get_y_pos(), plant_life.get_diameter(), plant_life.get_diameter()); 
-                    gc.drawImage(plant_gif, plant_life.get_x_pos(), plant_life.get_y_pos(), plant_life.get_diameter(), plant_life.get_diameter()); 
+                    //gc.drawImage(plant_gif, plant_life.get_x_pos(), plant_life.get_y_pos(), plant_life.get_diameter(), plant_life.get_diameter()); 
                     //System.out.println("Plant: x" + plant_life.get_x_pos() + " y" + plant_life.get_y_pos() + " w" + plant_life.get_diameter() + " w" + plant_life.get_diameter());
                 }
                 
@@ -124,9 +125,10 @@ public class Data_Out {
                 Iterator<Herbivore> herbivore_list_iterator = herbivore_list.iterator();
                 while (herbivore_list_iterator.hasNext()) {
                     Herbivore herbivore = herbivore_list_iterator.next();
+                    writer.println("Herbivore - x_pos:"+ Integer.toString(herbivore.get_x_pos()) + " \ty_pos"+ Integer.toString(herbivore.get_y_pos()) + "\tdiameter" + Integer.toString(herbivore.get_diameter()) + "\theight:" + Integer.toString(herbivore.get_height()));
                     //gc.fillRect(herbivore.get_x_pos(), herbivore.get_y_pos(), animal_width, animal_height); 
                     // TODO find a more appropriate size for these
-                    gc.drawImage(herbivore_gif, herbivore.get_x_pos(), herbivore.get_y_pos(), animal_width*6, animal_height*6); 
+                    //gc.drawImage(herbivore_gif, herbivore.get_x_pos(), herbivore.get_y_pos(), animal_width*6, animal_height*6); 
                     //System.out.println("herbivore: x" + herbivore.get_x_pos() + " y" + herbivore.get_y_pos() + " w" + animal_width + " w" + animal_width);
                 }
                 
@@ -135,14 +137,16 @@ public class Data_Out {
                 Iterator<Predator> predator_list_iterator = predator_list.iterator();
                 while (predator_list_iterator.hasNext()) {
                     Predator predator = predator_list_iterator.next();
+                    writer.println("Predator - x_pos:"+ Integer.toString(predator.get_x_pos()) + " \ty_pos"+ Integer.toString(predator.get_y_pos()) + "\tdiameter" + Integer.toString(predator.get_diameter()) + "\theight:" + Integer.toString(predator.get_height() ));
                     //gc.fillRect(predator.get_x_pos(), predator.get_y_pos(), animal_width+5, animal_height+5); 
-                    gc.drawImage(predator_gif, predator.get_x_pos(), predator.get_y_pos(), (animal_width+5)*2, (animal_height+5)*2); 
+                    //gc.drawImage(predator_gif, predator.get_x_pos(), predator.get_y_pos(), (animal_width+5)*2, (animal_height+5)*2); 
                     //System.out.println("predator: x" + predator.get_x_pos() + " y" + predator.get_y_pos() + " w" + animal_width + " w" + animal_width);
                 }
-*/
+
             }
         } catch (IOException e) {
            // do something
+           System.out.println("There was an error...");
         }
         
     }
