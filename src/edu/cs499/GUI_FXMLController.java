@@ -20,18 +20,17 @@
  * 03-27-17  MPK  Swapped Shapes for GIFs for actors.
  * 03-27-17  MPK  Added background_gameboard.
  * 04-13-17  MPK  Changed plant GIF to a still PNG.
+ * 04-19-17  AGA  Moved images into the .jar file; removed unused imports.
  *
  ******************************************************************************/
 package edu.cs499;
 
-import java.io.DataOutput;
-import java.io.PrintWriter;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
-import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
@@ -81,17 +80,22 @@ public class GUI_FXMLController implements Initializable {
     
     private boolean retrieve_actor_states;
     
-    private String plant_imagePath = "file:adultplant_finish.png";
-    private String herbivore_imagePath = "file:www.GIFCreator.me_GkRicN.gif";
-    private String predator_imagePath = "file:www.GIFCreator.me_5pxQjn.gif";
-    private String rock_imagePath = "file:rock_finished.png";
-    private String background_imagePath = "file:background_gameboard.jpg";
+    InputStream plantLoader = GUI_FXMLController.class.getResourceAsStream(
+        "/adultplant_finish.png");
+    InputStream herbivoreLoader = GUI_FXMLController.class.getResourceAsStream(
+        "/herbivore.gif");
+    InputStream predatorLoader = GUI_FXMLController.class.getResourceAsStream(
+        "/predator.gif");
+    InputStream rockLoader = GUI_FXMLController.class.getResourceAsStream(
+        "/rock_finished.png");
+    InputStream bgLoader = GUI_FXMLController.class.getResourceAsStream(
+        "/background_gameboard.jpg");
     	        
-    private Image plant_gif = new Image(plant_imagePath);
-    private Image herbivore_gif = new Image(herbivore_imagePath);
-    private Image predator_gif = new Image(predator_imagePath);
-    private Image rock_gif = new Image(rock_imagePath);
-    private Image background_gif = new Image(background_imagePath);
+    private Image plant_gif = new Image(plantLoader);
+    private Image herbivore_gif = new Image(herbivoreLoader);
+    private Image predator_gif = new Image(predatorLoader);
+    private Image rock_gif = new Image(rockLoader);
+    private Image background_gif = new Image(bgLoader);
     
     private Data_Out data_out = new Data_Out();
     
