@@ -38,6 +38,7 @@ public class Herbivore extends Actor {
     private boolean alive = true;
     private boolean reproduced = false;
     private boolean fleeing = false;
+    private double fleeingTimer;
 
     
     /**********************************************************************
@@ -145,6 +146,7 @@ public class Herbivore extends Actor {
             fleeing = true;
             stopEating();
             fleeingFrom = (Predator)closest;
+            fleeingTimer = this.maintainSpeedTime;
         }
         else 
         {
@@ -155,7 +157,17 @@ public class Herbivore extends Actor {
     
     public void flee(int worldWidth, int worldHeight) 
     {
-        double moveRange = getMoveRange();
+        int leftover = 0;
+        double moveRange;
+        
+        if (fleeingTimer > 0) 
+        {
+            moveRange = getMoveRange();
+        }
+        else 
+        {
+            moveRange = this.maxSpeed * .75;
+        }
         
         int x = fleeingFrom.x_pos;
         int y = fleeingFrom.y_pos;
@@ -175,10 +187,12 @@ public class Herbivore extends Actor {
         
         if (dx <= 0) 
         {
+            leftover = (int)dx * -1;
             x_pos = 0;
         }
         else if (dx >= worldWidth) 
         {
+            leftover = (int)dx - worldWidth;
             x_pos = worldWidth;
         }
         else {
@@ -187,16 +201,23 @@ public class Herbivore extends Actor {
              
         if (dy <= 0)
         {
+            leftover = (int)dy * -1;
             y_pos = 0;
         }
         else if (dy >= worldHeight)
         {
+            leftover = (int)dy - worldHeight;
             y_pos = worldHeight;
         }
         else 
         {
             y_pos += dy;
-        }     
+        }    
+        
+        int moved = (int)moveRange - leftover;
+            
+        this.spendEnergy((moved/5)*this.outputRate);
+        fleeingTimer--;
     }
     
     public void eat() 
