@@ -15,19 +15,19 @@
    <children>
       <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#40b255" height="790.0" stroke="BLACK" strokeType="INSIDE" width="1200.0" />
       <Button fx:id="StartButton" layoutX="1114.0" layoutY="138.0" mnemonicParsing="false" onAction="#start_button_event" prefHeight="25.0" prefWidth="57.0" text="Start" />
-      <Button fx:id="PauseButton" layoutX="1114.0" layoutY="170.0" mnemonicParsing="false" onAction="#pause_button_event" text="Pause" />
+      <Button fx:id="PauseButton" layoutX="1114.0" layoutY="170.0" mnemonicParsing="false" onAction="#pause_button_event" prefHeight="25.0" prefWidth="57.0" text="Pause" />
       <Button fx:id="EndButton" layoutX="1113.0" layoutY="203.0" mnemonicParsing="false" onAction="#end_button_event" prefHeight="25.0" prefWidth="57.0" text="End" />
-      <Button fx:id="GenReportButton" layoutX="1042.0" layoutY="452.0" mnemonicParsing="false" onAction="#gen_report_button_event" text="Generate Report" />
+      <Button fx:id="GenReportButton" layoutX="1042.0" layoutY="452.0" mnemonicParsing="false" onAction="#gen_report_button_event" prefHeight="25.0" prefWidth="127.0" text="Generate Report" />
       <Button fx:id="SpeedButton_50" layoutX="1113.0" layoutY="338.0" mnemonicParsing="false" onAction="#speed_50x_button_event" prefHeight="25.0" prefWidth="57.0" text="50x" />
       <Button fx:id="SpeedButton_10" layoutX="1113.0" layoutY="306.0" mnemonicParsing="false" onAction="#speed_10x_button_event" prefHeight="25.0" prefWidth="57.0" text="10x" />
       <Button fx:id="SpeedButton_1" layoutX="1113.0" layoutY="274.0" mnemonicParsing="false" onAction="#speed_1x_button_event" prefHeight="25.0" prefWidth="57.0" text="1x" />
-      <Button fx:id="SpeedButton_100" layoutX="1113.0" layoutY="369.0" mnemonicParsing="false" onAction="#speed_100x_button_event" prefHeight="25.0" prefWidth="57.0" text="100x" />
+      <Button fx:id="SpeedButton_100" layoutX="1115.0" layoutY="369.0" mnemonicParsing="false" onAction="#speed_100x_button_event" prefHeight="25.0" prefWidth="55.0" text="100x" />
       <Label layoutX="1114.0" layoutY="117.0" text="Controls" />
       <Label layoutX="1122.0" layoutY="251.0" text="Speed" />
       <TextField fx:id="FilenameInput" layoutX="1042.0" layoutY="420.0" prefHeight="25.0" prefWidth="127.0" text="Filename" />
       <Canvas fx:id="canvas" height="750.0" layoutX="20.0" layoutY="20.0" width="1000.0" />
-      <TextField fx:id="TimeTextField" editable="false" layoutX="1114.0" layoutY="73.0" prefHeight="25.0" prefWidth="55.0" />
-      <Button fx:id="ExitButton" layoutX="1099.0" layoutY="20.0" mnemonicParsing="false" onAction="#exit_button_event" text="Exit Sim" />
+      <TextField fx:id="TimeTextField" editable="false" layoutX="1114.0" layoutY="73.0" prefHeight="25.0" prefWidth="57.0" />
+      <Button fx:id="ExitButton" layoutX="1096.0" layoutY="20.0" mnemonicParsing="false" onAction="#exit_button_event" prefHeight="25.0" prefWidth="76.0" text="Exit Sim" />
    </children>
    <opaqueInsets>
       <Insets />
